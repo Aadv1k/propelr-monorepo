@@ -19,6 +19,7 @@ export const ERROR: Errors = {
     details: "The provided MIME type is not valid. Please provide a valid MIME type in the request",
     status: 400,
   },
+
   invalidJSON: {
     code: "invalid-JSON",
     message: "Invalid JSON",
@@ -32,4 +33,11 @@ export const ERROR: Errors = {
     details: "expected a particular data format recieved something else",
     status: 400,
   },
+
+  emailInvalid: {
+    code: "email-invalid",
+    message: "Received a bad email",
+    details: "the received email was either syntactically invalid or didn't exist",
+    status: 400,
+  }
 }

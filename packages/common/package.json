@@ -4,7 +4,8 @@
   "description": "common utils for propelr",
   "main": "./dist/index",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "dev": "tsc --watch"
   },
   "author": "Aadvik<aadv1k@outlook.com>",
   "license": "MIT",

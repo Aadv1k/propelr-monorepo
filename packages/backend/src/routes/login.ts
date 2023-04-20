@@ -1,7 +1,8 @@
 import Koa from "koa";
 
-import { ERROR } from "../common/const";
+import { ERROR, isProd, ABSTRACT} from "../common/const";
 import { sendError } from "../common/utils";
+import * as c from "@propelr/common";
 
 export default function (ctx: Koa.Context): void { 
   if (ctx.method === "POST") {
@@ -14,6 +15,13 @@ export default function (ctx: Koa.Context): void {
 
     if (!data?.username || !data?.password || !data?.email) {
       sendError(ctx, ERROR.badRequest);
+      return;
+    }
+
+    const emailValid = c.emailValidator(data.email, isProd, ABSTRACT.KEY);
+
+    if (!emailValid) {
+      sendError(ctx, ERROR.emailInvalid);
       return;
     }
 
