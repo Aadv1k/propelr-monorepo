@@ -1,0 +1,21 @@
+{
+  "name": "propelr",
+  "version": "0.0.1",
+  "workspaces": [
+    "./packages/*"
+  ],
+  "description": "propel your productivty and data to heights. From calendars to jobs portals connect everything to your favourite communications",
+  "main": "index.js",
+  "scripts": {
+    "format": "prettier --write */**",
+    "lint": "eslint ."
+  },
+  "author": "Aadvik<aadv1k@outlook.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^18.15.12",
+    "eslint": "^8.38.0",
+    "prettier": "^2.8.7",
+    "typescript": "^5.0.4"
+  }
+}
