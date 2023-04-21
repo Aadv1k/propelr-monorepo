@@ -8,7 +8,7 @@ dotenv.config({
 export const PORT = 3000;
 
 export const isProd = process.env?.NODE_ENV === "production" ? true : false;
-export const ABSTRACT = {
+export const ABSTRACT_API = {
   KEY: process.env.ABSTRACT_API_KEY ?? "",
 }
 

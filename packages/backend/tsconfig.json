@@ -3,5 +3,5 @@
     "compilerOptions": {
     "outDir": "../../dist/backend"
   },
-  "include": ["./src/**/*.ts"]
+  "include": ["./**/*.ts"]
 }
