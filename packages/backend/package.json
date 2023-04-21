@@ -13,7 +13,9 @@
     "backend": "^0.0.0",
     "dotenv": "^16.0.3",
     "koa": "^2.14.2",
-    "koa-bodyparser": "^4.4.0"
+    "koa-bodyparser": "^4.4.0",
+    "koa-passport": "^6.0.0",
+    "passport-google-oauth": "^2.0.0"
   },
   "devDependencies": {
     "@types/koa": "^2.13.6",

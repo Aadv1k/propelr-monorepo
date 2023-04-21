@@ -1,7 +1,11 @@
 import Koa from "koa";
 import bodyParser from "koa-bodyparser";
+import passport from "koa-passport";
 
 import routeRegister from "./routes/register";
+import routeOAuth from "./routes/oauth";
+
+
 import { sendErrorResponse } from "./common/utils";
 import * as Const from "./common/const";
 
@@ -24,6 +28,8 @@ app.use(async (ctx, next) => {
 
   await next();
 })
+
+app.use(passport.initialize());
 
 app.use(async (ctx: Koa.Context, next) => {
   if (ctx.path === "/") {

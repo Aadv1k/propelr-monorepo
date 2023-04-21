@@ -48,9 +48,9 @@ export default async function (ctx: Koa.Context): Promise<void> {
     return;
   }
 
-  ///////////////////////////////
-  // TODO: ADD USER TO DATABASE
-  ///////////////////////////////
+  ////////////////////////////////
+  // TODO: ADD USER TO DATABASE //
+  ////////////////////////////////
 
   sendJSONResponse(ctx, {
     success: {

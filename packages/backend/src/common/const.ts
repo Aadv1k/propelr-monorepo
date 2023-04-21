@@ -8,8 +8,16 @@ dotenv.config({
 export const PORT = 3000;
 
 export const isProd = process.env?.NODE_ENV === "production" ? true : false;
+
 export const ABSTRACT_API = {
   KEY: process.env.ABSTRACT_API_KEY ?? "",
+}
+
+export const GOOGLE_AUTH = {
+  CLIENT_ID: "40009214074-jvoogs9envlcji9if3caf75sen2j0bpt.apps.googleusercontent.com",
+  CLIENT_SECRET: "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",
+  REDIRECT: "http://localhost:3000",
+  AUTH_URL: "https://accounts.google.com/o/oauth2/auth",
 }
 
 export const ERROR: Errors = {
