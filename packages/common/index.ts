@@ -1,7 +1,11 @@
 import * as http from "./http";
-import emailValidator from "./emailValidator";
+import validateEmail from "./emailValidator";
+import bloomTable from "./bloomTable";
+import validateSchema from "./schemaValidator";
 
 export {
   http,
-  emailValidator,
+  validateEmail,
+  validateSchema,
+  bloomTable,
 }
