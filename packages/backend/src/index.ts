@@ -1,12 +1,8 @@
 import Koa from "koa";
-
-// import routeOAuth from "./routes/oauth";
-// import routeLogin from "./routes/login";
-
-import routeRegister from "./routes/register";
-
 import bodyParser from "koa-bodyparser";
 
+import routeRegister from "./routes/register";
+import { sendErrorResponse } from "./common/utils";
 import * as Const from "./common/const";
 
 const app = new Koa();
@@ -14,6 +10,20 @@ const app = new Koa();
 app.use(bodyParser({
   onerror: () => {}
 }));
+
+app.use(async (ctx, next) => {
+  if (!ctx.is('json')) {
+    sendErrorResponse(ctx, Const.ERROR.invalidMime);
+    return;
+  }
+
+  if (!ctx.request.body) {
+    sendErrorResponse(ctx, Const.ERROR.invalidJSON);
+    return;
+  }
+
+  await next();
+})
 
 app.use(async (ctx: Koa.Context, next) => {
   if (ctx.path === "/") {

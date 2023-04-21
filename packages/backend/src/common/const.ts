@@ -14,10 +14,17 @@ export const ABSTRACT_API = {
 
 export const ERROR: Errors = {
   invalidMime: {
-    code: "invalid-mime",
+    code: "invalid-MIME",
     message: "Invalid MIME type",
     details: "The provided MIME type is not valid. Please provide a valid MIME type in the request",
     status: 400,
+  },
+  
+  invalidMethod: {
+    code: "invalid-method",
+    message: "Invalid HTTP Method",
+    details: "The provided HTTP method is not allowed for this route. Please use the correct HTTP method.",
+    status: 405
   },
 
   invalidJSON: {
@@ -27,17 +34,17 @@ export const ERROR: Errors = {
     status: 400,
   },
 
-  badRequest: {
-    code: "bad-request",
-    message: "Received a bad request",
-    details: "expected a particular data format recieved something else",
+  badInput: {
+    code: "bad-input",
+    message: "Bad input",
+    details: "The provided input data is not valid. Please provide valid input data",
     status: 400,
   },
 
   emailInvalid: {
     code: "email-invalid",
     message: "Received a bad email",
-    details: "the received email was either syntactically invalid or didn't exist",
+    details: "The provided email is not valid. Please provide a valid email address.",
     status: 400,
   }
 }
