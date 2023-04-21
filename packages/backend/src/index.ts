@@ -14,8 +14,8 @@ app.use(bodyParser({
 
 
 const ROUTES = {
-  apiOAuthCallback: /\/api\/oauth\/(\w+)/,
-  apiOAuth: /\/api\/oauth\/(\w+)/,
+  apiOAuthCallback: /^\/api\/oauth\/[\w-]+\/callback\/?$/,
+  apiOAuth: /^\/api\/oauth\/[\w-]+\/?$/,
   apiRegister: /^\/api\/register$/,
   index: /^\/$/,
 }
@@ -26,12 +26,15 @@ app.use(async (ctx: Koa.Context, next) => {
   if (ctx.path === "/") {
     ctx.set("Content-type", "text/html");
     ctx.status = 200;
-    ctx.body = `<a href="/api/oauth/google">login with google</a>`;
+    ctx.body = `
+      <a href="/api/oauth/google">login with google</a>
+      <a href="/api/oauth/microsoft">login with microsoft</a>
+      `;
   } else if (ctx.path.match(ROUTES.apiRegister)) {
     await routeRegister(ctx);
-  } else if (ctx.path.startsWith("/api/oauth/google/callback")) {
+  } else if (ctx.path.match(ROUTES.apiOAuthCallback)) {
     await routeOAuthCallback(ctx, next);
-  } else if (ctx.path.startsWith("/api/oauth/google")) {
+  } else if (ctx.path.match(ROUTES.apiOAuth)) {
     await routeOAuth(ctx, next);
   }
   await next();

@@ -16,12 +16,14 @@
     "koa-bodyparser": "^4.4.0",
     "koa-passport": "^6.0.0",
     "passport-google-oauth": "^2.0.0",
-    "passport-google-oauth2": "^0.2.0"
+    "passport-google-oauth2": "^0.2.0",
+    "passport-microsoft": "^1.0.0"
   },
   "devDependencies": {
     "@types/koa": "^2.13.6",
     "@types/koa-bodyparser": "^4.3.10",
     "@types/koa-passport": "^6.0.0",
-    "@types/passport-google-oauth2": "^0.1.5"
+    "@types/passport-google-oauth2": "^0.1.5",
+    "@types/passport-microsoft": "^1.0.0"
   }
 }

@@ -2,7 +2,7 @@ import { Errors } from "../types/const";
 import dotenv from "dotenv"
 
 dotenv.config({
-  path: "../../"
+  path: "../../.env"
 });
 
 export const PORT = 3000;
@@ -19,10 +19,18 @@ export const GOOGLE_AUTH = {
   REDIRECT: "http://localhost:3000/api/oauth/google/callback",
 }
 
-export enum OAuthSchemes {
-  GOOGLE = "google",
-  MICROSOFT = "microsoft",
-  DISCORD = "discord",
+export const MS_AUTH = {
+  CLIENT_ID: process.env.MS_CLIENT_ID ?? "",
+  CLIENT_SECRET: process.env.MS_CLIENT_SECRET ?? "",
+  REDIRECT: "http://localhost:3000/api/oauth/microsoft/callback"
+}
+
+export const OAuthSchemes = {
+  google: "google",
+  microsoft: "microsoft",
+  discord: "discord",
+} as {
+  [key: string]: string
 }
 
 export const ERROR: Errors = {
@@ -51,6 +59,20 @@ export const ERROR: Errors = {
     code: "bad-input",
     message: "Bad input",
     details: "The provided input data is not valid. Please provide valid input data",
+    status: 400,
+  },
+
+  oAuthSchemeNotFound: {
+    code: "oauth-scheme-not-found",
+    message: "OAuth Scheme Not Found",
+    details: "The requested OAuth scheme was not found. Please check your request and try again with a valid OAuth scheme.",
+    status: 401
+  },
+
+  badOAuthCallback: {
+    code: "bad-oauth-callback",
+    message: "Callback parameters error",
+    details: "The callback route was accessed without proper parameters. Please provide valid parameters.",
     status: 400,
   },
 

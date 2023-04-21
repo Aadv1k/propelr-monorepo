@@ -1,10 +1,12 @@
 import Koa from "koa";
-
-import { GOOGLE_AUTH, OAuthSchemes } from "../common/const";
-
 import passport from "koa-passport";
 
-import { Strategy as GoogleStrategy } from 'passport-google-oauth2';
+import { Strategy as GoogleStrategy } from "passport-google-oauth2";
+import { Strategy as MicrosoftStategy } from "passport-microsoft";
+
+import { GOOGLE_AUTH, MS_AUTH, OAuthSchemes, ERROR } from "../common/const";
+import { sendErrorResponse } from "../common/utils";
+
 
 passport.use(
   new GoogleStrategy(
@@ -19,21 +21,77 @@ passport.use(
   )
 );
 
+passport.use(
+  new MicrosoftStategy(
+    {
+      clientID: MS_AUTH.CLIENT_ID,
+      clientSecret: MS_AUTH.CLIENT_SECRET,
+      callbackURL: MS_AUTH.REDIRECT,
+      passReqToCallback: true,
+      scope: ["openid", "email", "profile"]
+    },
+    (_a: any, _b: any, profile: any, done: any) => {
+      return done(null, profile);
+    }
+  )
+);
 
 export async function routeOAuth(ctx: Koa.Context, next: Koa.Next): Promise<void> {
-  // const [_a, _b, scheme, _c ] = ctx.path.split('/');
+  console.log(ctx.path.split('/'))
+  let params = ctx.path.split('/');
+  let scheme = params.find(e => OAuthSchemes[e])
+
+  if (!scheme) {
+    sendErrorResponse(ctx, ERROR.oAuthSchemeNotFound);
+    return;
+  }
+
   const state = Math.random().toString(36).substring(2, 15);
-  await passport.authenticate("google", 
+
+  let authScheme: {
+    provider: string,
+    scope: Array<string>
+  } = {
+    provider: "",
+    scope: [],
+  };
+
+  console.log(scheme);
+  switch (scheme) {
+
+    case "google":
+      authScheme.provider = "google";
+      authScheme.scope = ["email", "profile"]
+      break;
+    case "microsoft":
+      authScheme.provider = "microsoft";
+      authScheme.scope = ["openid", "email", "profile"]
+      break;
+  }
+
+  await passport.authenticate(authScheme.provider,
     {
-      scope: ["profile", "email"],
+      scope: authScheme.scope,
       state: state,
     }
   )(ctx, next);
-
 }
 
 export async function routeOAuthCallback(ctx: Koa.Context, next: Koa.Next): Promise<void> {
-  passport.authenticate('google', async (err, user) => {
+  let params = ctx.path.split('/');
+  let scheme = params.find(e => OAuthSchemes[e])
+
+  if (!scheme) {
+    sendErrorResponse(ctx, ERROR.oAuthSchemeNotFound);
+    return;
+  }
+
+  passport.authenticate(scheme, async (err, user, info) => {
+    if (err) {
+      console.log(err, info);
+      sendErrorResponse(ctx, ERROR.badOAuthCallback);
+      return;
+    }
     console.log(user)
     // google: user.email, user.language, user.photos[0].value
   })(ctx, next);
