@@ -2,12 +2,9 @@ import Koa from "koa";
 import bodyParser from "koa-bodyparser";
 import passport from "koa-passport";
 
+import { routeOAuth, routeOAuthCallback } from "./routes/oauth";
 import routeRegister from "./routes/register";
-import routeOAuth from "./routes/oauth";
-
-
-import { sendErrorResponse } from "./common/utils";
-import * as Const from "./common/const";
+import { PORT } from "./common/const";
 
 const app = new Koa();
 
@@ -15,19 +12,13 @@ app.use(bodyParser({
   onerror: () => {}
 }));
 
-app.use(async (ctx, next) => {
-  if (!ctx.is('json')) {
-    sendErrorResponse(ctx, Const.ERROR.invalidMime);
-    return;
-  }
 
-  if (!ctx.request.body) {
-    sendErrorResponse(ctx, Const.ERROR.invalidJSON);
-    return;
-  }
-
-  await next();
-})
+const ROUTES = {
+  apiOAuthCallback: /\/api\/oauth\/(\w+)/,
+  apiOAuth: /\/api\/oauth\/(\w+)/,
+  apiRegister: /^\/api\/register$/,
+  index: /^\/$/,
+}
 
 app.use(passport.initialize());
 
@@ -35,13 +26,17 @@ app.use(async (ctx: Koa.Context, next) => {
   if (ctx.path === "/") {
     ctx.set("Content-type", "text/html");
     ctx.status = 200;
-    ctx.body = "welcome to index";
-  } else if (ctx.path.startsWith("/api/register")) {
+    ctx.body = `<a href="/api/oauth/google">login with google</a>`;
+  } else if (ctx.path.match(ROUTES.apiRegister)) {
     await routeRegister(ctx);
+  } else if (ctx.path.startsWith("/api/oauth/google/callback")) {
+    await routeOAuthCallback(ctx, next);
+  } else if (ctx.path.startsWith("/api/oauth/google")) {
+    await routeOAuth(ctx, next);
   }
   await next();
 })
 
-app.listen(Const.PORT, () => {
-  console.log(`listening at http://localhost:${Const.PORT}`);
+app.listen(PORT, () => {
+  console.log(`listening at http://localhost:${PORT}`);
 });

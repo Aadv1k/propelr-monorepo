@@ -14,10 +14,15 @@ export const ABSTRACT_API = {
 }
 
 export const GOOGLE_AUTH = {
-  CLIENT_ID: "40009214074-jvoogs9envlcji9if3caf75sen2j0bpt.apps.googleusercontent.com",
-  CLIENT_SECRET: "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",
-  REDIRECT: "http://localhost:3000",
-  AUTH_URL: "https://accounts.google.com/o/oauth2/auth",
+  CLIENT_ID: process.env.GOOGLE_CLIENT_ID ?? "",
+  CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ?? "",
+  REDIRECT: "http://localhost:3000/api/oauth/google/callback",
+}
+
+export enum OAuthSchemes {
+  GOOGLE = "google",
+  MICROSOFT = "microsoft",
+  DISCORD = "discord",
 }
 
 export const ERROR: Errors = {

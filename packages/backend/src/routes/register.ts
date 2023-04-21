@@ -15,6 +15,9 @@ export default async function (ctx: Koa.Context): Promise<void> {
     return;
   }
 
+  if (!ctx.is('json')) { sendErrorResponse(ctx, ERROR.invalidMime); return; }
+  if (!ctx.request.body) { sendErrorResponse(ctx, ERROR.invalidJSON); return; }
+
   let data = ctx.request.body as User;
 
   if (
