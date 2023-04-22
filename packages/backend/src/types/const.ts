@@ -1,10 +1,10 @@
 export interface Error {
-  code: string,
-  message: string,
-  details: string,
-  status: number
+  code: string;
+  message: string;
+  details: string;
+  status: number;
 }
 
 export interface Errors {
-  [key: string]: Error
-} 
+  [key: string]: Error;
+}

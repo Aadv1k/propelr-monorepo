@@ -1,4 +1,4 @@
-import crypto from "node:crypto";
+import crypto from 'node:crypto';
 
 export default class BloomTable {
   sizeInBits: number;
@@ -28,9 +28,9 @@ export default class BloomTable {
 
   private hash(input: string, seed: number) {
     input = input + seed;
-    const hash = crypto.createHash("md5");
-    const hashed = hash.update(input).digest("hex");
+    const hash = crypto.createHash('md5');
+    const hashed = hash.update(input).digest('hex');
     const hashValue = parseInt(hashed, 16);
-    return hashValue % (this.sizeInBits);
+    return hashValue % this.sizeInBits;
   }
 }

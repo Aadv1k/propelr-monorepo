@@ -1,29 +1,26 @@
-import Koa from "koa";
-import bodyParser from "koa-bodyparser";
-import passport from "koa-passport";
+import Koa from 'koa';
+import bodyParser from 'koa-bodyparser';
+import passport from 'koa-passport';
 
-import { routeOAuth, routeOAuthCallback } from "./routes/oauth";
-import routeRegister from "./routes/register";
+import { routeOAuth, routeOAuthCallback } from './routes/oauth';
+import routeRegister from './routes/register';
 
 const app = new Koa();
 
-app.use(bodyParser({
-  onerror: () => {}
-}));
-
+app.use(bodyParser({}));
 
 const ROUTES = {
   apiOAuthCallback: /^\/api\/oauth\/[\w-]+\/callback\/?$/,
   apiOAuth: /^\/api\/oauth\/[\w-]+\/?$/,
   apiRegister: /^\/api\/register$/,
   index: /^\/$/,
-}
+};
 
 app.use(passport.initialize());
 
 app.use(async (ctx: Koa.Context, next) => {
-  if (ctx.path === "/") {
-    ctx.set("Content-type", "text/html");
+  if (ctx.path === '/') {
+    ctx.set('Content-type', 'text/html');
     ctx.status = 200;
     ctx.body = `
       <a href="/api/oauth/google">login with google</a>
@@ -37,6 +34,6 @@ app.use(async (ctx: Koa.Context, next) => {
     await routeOAuth(ctx, next);
   }
   await next();
-})
+});
 
 export default app;

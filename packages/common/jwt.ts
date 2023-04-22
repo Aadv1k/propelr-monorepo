@@ -1,25 +1,21 @@
-import crypto from "node:crypto";
+import crypto from 'node:crypto';
 
 function hmac256(txt: string, secret: string): string {
-  return crypto.createHmac("sha256", secret).update(txt).digest("hex")
-}  
-
-const HEADER = {
-  alg: "HS256",
-  typ: "JWT"
+  return crypto.createHmac('sha256', secret).update(txt).digest('hex');
 }
 
+const HEADER = {
+  alg: 'HS256',
+  typ: 'JWT',
+};
+
 function b64Encode(text: string): string {
-  return Buffer.from(text).toString("base64")
-    .replace('+', '-')
-    .replace('/', '_')
-    .replace(/=+$/, '');
+  return Buffer.from(text).toString('base64').replace('+', '-').replace('/', '_').replace(/=+$/, '');
 }
 
 function b64Decode(text: string): string {
-  return Buffer.from(text, "base64").toString()
+  return Buffer.from(text, 'base64').toString();
 }
-
 
 export function sign(obj: any, secret: string) {
   const head = b64Encode(JSON.stringify(HEADER));
@@ -30,13 +26,13 @@ export function sign(obj: any, secret: string) {
 }
 
 export function verify(token: string, secret: string): boolean {
-  let split = token.split(".");
+  const split = token.split('.');
 
   if (split.length !== 3) return false;
 
-  let head = b64Decode(split[0]);
-  let payload = b64Decode(split[1]);
-  let tail = split[2];
+  const head = b64Decode(split[0]);
+  const payload = b64Decode(split[1]);
+  const tail = split[2];
 
   if (JSON.parse(head).alg !== HEADER.alg) return false;
 

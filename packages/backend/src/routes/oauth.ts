@@ -4,18 +4,8 @@ import passport from 'koa-passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth2';
 import { Strategy as MicrosoftStategy } from 'passport-microsoft';
 
-import {
-  GOOGLE_AUTH,
-  MS_AUTH,
-  OAuthSchemes,
-  ERROR,
-  JWT_SECRET,
-} from '../common/const';
-import {
-  sendErrorResponse,
-  generateId,
-  sendJSONResponse,
-} from '../common/utils';
+import { GOOGLE_AUTH, MS_AUTH, OAuthSchemes, ERROR, JWT_SECRET } from '../common/const';
+import { sendErrorResponse, generateId, sendJSONResponse } from '../common/utils';
 
 import { User } from '../types/user';
 import { DBUser } from '../types/userRepository';
@@ -33,7 +23,7 @@ passport.use(
     },
     (_a, _b, profile, done) => {
       return done(null, profile);
-      //return done(null, profile);
+      // return done(null, profile);
     },
   ),
 );
@@ -48,18 +38,15 @@ passport.use(
     },
     function (accessToken: any, refreshToken: any, profile: any, done: any) {
       return done(null, profile);
-      //return done(null, profile);
+      // return done(null, profile);
     },
   ),
 );
 
-export async function routeOAuth(
-  ctx: Koa.Context,
-  next: Koa.Next,
-): Promise<void> {
+export async function routeOAuth(ctx: Koa.Context, next: Koa.Next): Promise<void> {
   console.log(ctx.path.split('/'));
-  let params = ctx.path.split('/');
-  let scheme = params.find((e) => OAuthSchemes[e]);
+  const params = ctx.path.split('/');
+  const scheme = params.find((e) => OAuthSchemes[e]);
 
   if (!scheme) {
     sendErrorResponse(ctx, ERROR.oAuthSchemeNotFound);
@@ -68,7 +55,7 @@ export async function routeOAuth(
 
   const state = Math.random().toString(36).substring(2, 15);
 
-  let authScheme: {
+  const authScheme: {
     provider: string;
     scope: Array<string>;
     state: string;
@@ -95,12 +82,9 @@ export async function routeOAuth(
   })(ctx, next);
 }
 
-export async function routeOAuthCallback(
-  ctx: Koa.Context,
-  next: Koa.Next,
-): Promise<void> {
-  let params = ctx.path.split('/');
-  let scheme = params.find((e) => OAuthSchemes[e]);
+export async function routeOAuthCallback(ctx: Koa.Context, next: Koa.Next): Promise<void> {
+  const params = ctx.path.split('/');
+  const scheme = params.find((e) => OAuthSchemes[e]);
 
   if (!scheme) {
     sendErrorResponse(ctx, ERROR.oAuthSchemeNotFound);
@@ -109,30 +93,27 @@ export async function routeOAuthCallback(
 
   let callback;
   try {
-  callback = await new Promise((resolve, reject) => {
-    let scheme = params.find((e) => OAuthSchemes[e]) as string;
-    passport.authenticate(scheme, async (err, user) => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve(user)
-      }
-    })(ctx, next);
-
-  })
+    callback = await new Promise((resolve, reject) => {
+      const scheme = params.find((e) => OAuthSchemes[e]) as string;
+      passport.authenticate(scheme, async (err, user) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(user);
+        }
+      })(ctx, next);
+    });
   } catch (err) {
     console.log(err);
     sendErrorResponse(ctx, ERROR.badOAuthCallback);
     return;
   }
 
-  let user: any = callback;
+  const user: any = callback;
   await USER_DB.init();
 
   // TODO: this currently works since we have two schemes
-  const foundUser = await USER_DB.getUserByEmail(
-    user?.email || user?.userPrincipalName,
-  );
+  const foundUser = await USER_DB.getUserByEmail(user?.email || user?.userPrincipalName);
 
   if (foundUser) {
     sendErrorResponse(ctx, ERROR.userAlreadyExists);
@@ -145,19 +126,19 @@ export async function routeOAuthCallback(
     password: generateId(16), // TODO: find a better way to generate password
   };
 
-  let pushedUser = await USER_DB.pushUser(userToPush);
+  const pushedUser = await USER_DB.pushUser(userToPush);
 
   if (!pushedUser) {
     sendErrorResponse(ctx, ERROR.internalError);
     return;
   }
 
-  let jwt_payload: any = {
+  const jwt_payload: any = {
     id: pushedUser.id,
     email: pushedUser.email,
   };
 
-  let token = common.jwt.sign(jwt_payload, JWT_SECRET);
+  const token = common.jwt.sign(jwt_payload, JWT_SECRET);
 
   sendJSONResponse(ctx, {
     success: {
@@ -166,7 +147,4 @@ export async function routeOAuthCallback(
     },
     status: 200,
   });
-
-
-
 }
