@@ -29,26 +29,40 @@ export function sign(obj: any, secret: string) {
 }
 
 export function parse(token: string, secret: string): any | null {
-  if (!verify(token, secret)) return null;
-  const [_a, payload, _b] = token.split('.');
-  return JSON.parse(b64Decode(payload));
+  try {
+    if (!verify(token, secret)) return null;
+    let payload;
+    try {
+      payload = token.split('.')[2];
+    } catch (err) {
+      return null;
+    }
+    return JSON.parse(b64Decode(payload));
+  } catch {
+    return null;
+  }
 }
 
 export function verify(token: string, secret: string): boolean {
-  const split = token.split('.');
+  try {
+    const split = token.split('.');
 
-  if (split.length !== 3) return false;
+    if (split.length !== 3) return false;
 
-  const head = b64Decode(split[0]);
-  const payload = b64Decode(split[1]);
-  const tail = split[2];
+    const head = b64Decode(split[0]);
+    const payload = b64Decode(split[1]);
+    const tail = split[2];
 
-  if (JSON.parse(head).alg !== HEADER.alg) return false;
+    if (JSON.parse(head).alg !== HEADER.alg) return false;
 
-  const decoded = hmac256(`${b64Encode(head)}.${b64Encode(payload)}`, secret);
+    const decoded = hmac256(`${b64Encode(head)}.${b64Encode(payload)}`, secret);
 
-  if (decoded !== tail) return false;
+    if (decoded !== tail) return false;
 
-  return true;
+    return true;
+  } catch {
+    return false;
+  }
 }
+
 
