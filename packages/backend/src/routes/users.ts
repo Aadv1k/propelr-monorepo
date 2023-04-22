@@ -10,23 +10,25 @@ const USER_DB = new UserRepo();
 export default async function (ctx: Koa.Context): Promise<void> {
   await USER_DB.init();
 
-  if (ctx.method !== "GET") {
+  if (ctx.method !== 'GET') {
     sendErrorResponse(ctx, ERROR.invalidMethod);
     return;
   }
 
-  let users = await USER_DB.getUsers() ;
+  let users = await USER_DB.getUsers();
 
   if (!users) {
     sendErrorResponse(ctx, ERROR.internalError);
     return;
   }
 
-  let arr = users.map(e => {return {id: e.id}});
+  let arr = users.map((e) => {
+    return { id: e.id };
+  });
 
   sendJSONResponse(ctx, {
     success: {
-      ...arr
+      ...arr,
     },
     status: 200,
   });

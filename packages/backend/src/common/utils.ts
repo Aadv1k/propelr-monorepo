@@ -1,6 +1,7 @@
 import { Error } from '../types/const';
 import { bloomTable as BloomTable } from '@propelr/common';
 import crypto from 'node:crypto';
+import draco from "dracoql";
 
 import Koa from 'koa';
 
@@ -17,6 +18,17 @@ export function sendErrorResponse(ctx: Koa.Context, err: Error) {
   });
   ctx.set('Content-type', 'application/json');
   ctx.status = err.status;
+}
+
+export function verifyDracoSyntax(syn: string): boolean {
+  try {
+    const lexer = new draco.lexer(syn);
+    const parser = new draco.parser(lexer.lex())
+    parser.parse();
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function generateId(length: number): string {

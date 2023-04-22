@@ -48,6 +48,13 @@ export const ERROR: Errors = {
     status: 400,
   },
 
+  unauthorized: {
+    code: 'unauthorized',
+    message: 'Unauthorized',
+    details: 'You do not have the necessary permissions to access this resource',
+    status: 401,
+  },
+
   userNotFound: {
     code: 'user-not-found',
     message: 'User not found',
@@ -96,6 +103,14 @@ export const ERROR: Errors = {
     code: 'bad-input',
     message: 'Bad input',
     details: 'The provided input data is not valid. Please provide valid input data',
+    status: 400,
+  },
+
+  invalidDracoSyntax: {
+    code: 'invalid-draco-syntax',
+    message: 'Invalid syntax for DracoQL',
+    details:
+      'the provided syntax for DracoQL was invalid. please vist https://github.com/aadv1k/dracoql#syntax for the correct syntax',
     status: 400,
   },
 
