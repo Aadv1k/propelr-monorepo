@@ -3,18 +3,9 @@ import Koa from 'koa';
 import { ERROR } from '../common/const';
 import { sendErrorResponse, sendJSONResponse } from '../common/utils';
 
-import UserRepo from '../models/UserRepository';
+import { USER_DB } from '../models/UserRepository';
 
-const USER_DB = new UserRepo();
-
-export default async function (ctx: Koa.Context): Promise<void> {
-  await USER_DB.init();
-
-  if (ctx.method !== 'GET') {
-    sendErrorResponse(ctx, ERROR.invalidMethod);
-    return;
-  }
-
+async function handleGet(ctx: Koa.Context): Promise<void> {
   let users = await USER_DB.getUsers();
 
   if (!users) {
@@ -22,14 +13,27 @@ export default async function (ctx: Koa.Context): Promise<void> {
     return;
   }
 
-  let arr = users.map((e) => {
+  let arr = users.map((e: any) => {
     return { id: e.id };
   });
 
   sendJSONResponse(ctx, {
     success: {
-      ...arr,
+      data: [ 
+        ...arr
+      ]
     },
     status: 200,
   });
+}
+
+export default async function (ctx: Koa.Context): Promise<void> {
+  switch (ctx.method) {
+    case "GET":
+      await handleGet(ctx);
+      break;
+    default: 
+      sendErrorResponse(ctx, ERROR.invalidMethod);
+      break;
+  }
 }

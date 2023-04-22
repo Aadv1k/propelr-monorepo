@@ -5,9 +5,7 @@ import * as utils from '../common/utils';
 
 import * as common from '@propelr/common';
 import { DBFlow } from '../types/userRepository';
-import UserRepo from '../models/UserRepository';
-
-const USER_DB = new UserRepo();
+import { USER_DB } from '../models/UserRepository';
 
 function validateTokenOrSendError(ctx: Koa.Context): void {
   if (!ctx.headers.authorization || common.jwt.verify(ctx.headers?.authorization?.split(' ')?.[1], JWT_SECRET)) {
@@ -17,6 +15,12 @@ function validateTokenOrSendError(ctx: Koa.Context): void {
 }
 
 async function handlePost(ctx: Koa.Context): Promise<void> {
+  validateTokenOrSendError(ctx);
+
+  // we already validate this
+  let target = ctx.headers.authorization as any;
+  let parsedToken = common.jwt.parse(target.split(' ')[1], JWT_SECRET)
+
   if (ctx.headers["content-type"] !== "application/json") {
     utils.sendErrorResponse(ctx, ERROR.invalidMime);
     return;
@@ -41,7 +45,7 @@ async function handlePost(ctx: Koa.Context): Promise<void> {
 
   const flow: DBFlow = {
     id: utils.generateId(16),
-    userid: "", // TODO: parsedToken.id,
+    userid: parsedToken.id,
     query: data.query,
     vars: data?.vars,
   }
@@ -93,8 +97,6 @@ async function handleGet(ctx: Koa.Context): Promise<void> {
 }
 
 export default async function (ctx: Koa.Context): Promise<void> {
-  await USER_DB.init();
-
   switch (ctx.method) {
     case "POST":
       await handlePost(ctx);
@@ -106,6 +108,4 @@ export default async function (ctx: Koa.Context): Promise<void> {
       utils.sendErrorResponse(ctx, ERROR.invalidMethod);
       break;
   }
-
-  await USER_DB.close();
 }

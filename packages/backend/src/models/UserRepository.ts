@@ -2,7 +2,7 @@ import { MongoClient } from 'mongodb';
 import { DBUser, DBFlow } from '../types/userRepository';
 import { ATLAS } from '../common/const';
 
-export default class {
+export default class UserRepo {
   client: MongoClient;
   flows: any;
   users: any;
@@ -56,7 +56,7 @@ export default class {
 
   async getUsers(): Promise<Array<DBUser> | null> {
     try {
-      const user = this.users.find({})
+      const user = this.users.find({}).toArray();
       return user;
     } catch (err) {
       return null;
@@ -83,7 +83,7 @@ export default class {
 
   async getFlowsByUserId(userId: string): Promise<Array<DBFlow> | null> {
     try {
-      const flows = this.flows.find({ userid: userId })
+      const flows = this.flows.find({ userid: userId }).toArray();
       return flows;
     } catch (err) {
       return null;
@@ -94,3 +94,5 @@ export default class {
     await this.client.close();
   }
 }
+
+export const USER_DB = new UserRepo();

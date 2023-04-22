@@ -5,13 +5,9 @@ import { sendErrorResponse, sendJSONResponse, md5 } from '../common/utils';
 
 import * as common from '@propelr/common';
 import { User } from '../types/user';
-import UserRepo from '../models/UserRepository';
-
-const USER_DB = new UserRepo();
+import { USER_DB } from '../models/UserRepository';
 
 export default async function (ctx: Koa.Context): Promise<void> {
-  await USER_DB.init();
-
   if (ctx.method !== 'POST') {
     sendErrorResponse(ctx, ERROR.invalidMethod);
     return;
@@ -35,7 +31,7 @@ export default async function (ctx: Koa.Context): Promise<void> {
       password: 'string',
     })
   ) {
-    sendErrorResponse(ctx, ERROR.badRequest);
+    sendErrorResponse(ctx, ERROR.badInput);
     return;
   }
 

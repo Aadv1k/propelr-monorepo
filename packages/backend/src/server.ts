@@ -8,6 +8,8 @@ import routeUsersRegister from './routes/register';
 import routeUsersLogin from './routes/login';
 import routeUsers from "./routes/users";
 
+import { USER_DB } from './models/UserRepository';
+
 import routeFlows from "./routes/flows";
  
 
@@ -30,6 +32,8 @@ const ROUTES = {
 app.use(passport.initialize());
 
 app.use(async (ctx: Koa.Context, next) => {
+  await USER_DB.init();
+
   if (ctx.path === '/') {
     ctx.set('Content-type', 'text/html');
     ctx.status = 200;

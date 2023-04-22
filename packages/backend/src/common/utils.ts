@@ -32,7 +32,7 @@ export function verifyDracoSyntax(syn: string): boolean {
 }
 
 export function generateId(length: number): string {
-  return crypto.randomBytes(length).toString();
+  return crypto.randomBytes(length).toString("hex");
 }
 
 export function md5(input: string): string {
