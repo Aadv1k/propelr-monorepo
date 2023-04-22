@@ -48,6 +48,21 @@ export const ERROR: Errors = {
     status: 400,
   },
 
+  userNotFound: {
+    code: 'user-not-found',
+    message: 'User not found',
+    details: 'The user was not found. Please check the credentials and try again.',
+    status: 404,
+  },
+
+  invalidPassword: {
+    code: 'invalid-password',
+    message: 'Invalid password',
+    details:
+      'The provided password is not valid. Please provide a valid password with at least 8 characters, including at least one uppercase letter, one lowercase letter, and one numeric digit.',
+    status: 400,
+  },
+
   userAlreadyExists: {
     code: 'user-already-exists',
     message: 'Registration Failed',
@@ -65,7 +80,8 @@ export const ERROR: Errors = {
   invalidMethod: {
     code: 'invalid-method',
     message: 'Invalid HTTP Method',
-    details: 'The provided HTTP method is not allowed for this route. Please use the correct HTTP method.',
+    details:
+      'The provided HTTP method is not allowed for this route. Please use the correct HTTP method.',
     status: 405,
   },
 
@@ -94,7 +110,8 @@ export const ERROR: Errors = {
   badOAuthCallback: {
     code: 'bad-oauth-callback',
     message: 'Callback parameters error',
-    details: 'The callback route was accessed without proper parameters. Please provide valid parameters.',
+    details:
+      'The callback route was accessed without proper parameters. Please provide valid parameters.',
     status: 400,
   },
 

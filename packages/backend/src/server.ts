@@ -4,6 +4,7 @@ import passport from 'koa-passport';
 
 import { routeOAuth, routeOAuthCallback } from './routes/oauth';
 import routeRegister from './routes/register';
+import routeLogin from './routes/login';
 
 const app = new Koa();
 
@@ -13,6 +14,7 @@ const ROUTES = {
   apiOAuthCallback: /^\/api\/oauth\/[\w-]+\/callback\/?$/,
   apiOAuth: /^\/api\/oauth\/[\w-]+\/?$/,
   apiRegister: /^\/api\/register$/,
+  apiLogin: /^\/api\/login$/,
   index: /^\/$/,
 };
 
@@ -32,6 +34,8 @@ app.use(async (ctx: Koa.Context, next) => {
     await routeOAuthCallback(ctx, next);
   } else if (ctx.path.match(ROUTES.apiOAuth)) {
     await routeOAuth(ctx, next);
+  } else if (ctx.path.match(ROUTES.apiLogin)) {
+    await routeLogin(ctx, next);
   }
   await next();
 });

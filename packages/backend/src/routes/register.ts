@@ -1,7 +1,13 @@
 import Koa from 'koa';
 
 import { ERROR, isProd, ABSTRACT_API, JWT_SECRET } from '../common/const';
-import { sendErrorResponse, invalidEmailBloomTable, sendJSONResponse, generateId } from '../common/utils';
+import {
+  sendErrorResponse,
+  invalidEmailBloomTable,
+  sendJSONResponse,
+  generateId,
+  md5,
+} from '../common/utils';
 import * as common from '@propelr/common';
 import { User } from '../types/user';
 import { DBUser } from '../types/userRepository';
@@ -65,7 +71,7 @@ export default async function (ctx: Koa.Context): Promise<void> {
   const user: DBUser = {
     id: generateId(16),
     email: data.email,
-    password: data.password,
+    password: md5(data.password),
   };
 
   const pushedUser: DBUser | null = await USER_DB.pushUser(user);

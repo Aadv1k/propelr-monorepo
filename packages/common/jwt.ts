@@ -10,7 +10,11 @@ const HEADER = {
 };
 
 function b64Encode(text: string): string {
-  return Buffer.from(text).toString('base64').replace('+', '-').replace('/', '_').replace(/=+$/, '');
+  return Buffer.from(text)
+    .toString('base64')
+    .replace('+', '-')
+    .replace('/', '_')
+    .replace(/=+$/, '');
 }
 
 function b64Decode(text: string): string {

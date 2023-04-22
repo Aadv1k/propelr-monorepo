@@ -23,6 +23,10 @@ export function generateId(length: number): string {
   return crypto.randomBytes(length).toString();
 }
 
+export function md5(input: string): string {
+  return crypto.createHash('md5').update(input).digest('hex');
+}
+
 export function sendJSONResponse(ctx: Koa.Context, obj: any, status?: number) {
   const json = JSON.stringify(obj);
 
