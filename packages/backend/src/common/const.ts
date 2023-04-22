@@ -28,8 +28,8 @@ export const MS_AUTH = {
 }
 
 export const ATLAS = {
-  PASSWORD: process.env.ATLAS_PASSWORD ?? "",
-  USER: process.env.ATLAS_USER ?? "",
+  PASSWORD: process.env.ATLAS_PASSWORD,
+  USER: process.env.ATLAS_USER,
 }
 
 export const OAuthSchemes = {
@@ -46,6 +46,13 @@ export const ERROR: Errors = {
     message: "Invalid MIME type",
     details: "The provided MIME type is not valid. Please provide a valid MIME type in the request",
     status: 400,
+  },
+
+  userAlreadyExists: {
+    code: "user-already-exists",
+    message: "Registration Failed",
+    details: "The user with the provided email already exists in the system.",
+    status: 400
   },
 
   internalError: {

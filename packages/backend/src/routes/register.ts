@@ -58,6 +58,13 @@ export default async function (ctx: Koa.Context): Promise<void> {
     return;
   }
 
+  const foundUser = await USER_DB.getUserByEmail(data.email);
+
+  if (foundUser) {
+    sendErrorResponse(ctx, ERROR.userAlreadyExists);
+    return;
+  }
+
   const user: DBUser = {
     id: generateId(16),
     email: data.email,

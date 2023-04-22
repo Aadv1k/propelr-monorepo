@@ -1,24 +1,41 @@
-import Koa from "koa";
-import passport from "koa-passport";
+import Koa from 'koa';
+import passport from 'koa-passport';
 
-import { Strategy as GoogleStrategy } from "passport-google-oauth2";
-import { Strategy as MicrosoftStategy } from "passport-microsoft";
+import { Strategy as GoogleStrategy } from 'passport-google-oauth2';
+import { Strategy as MicrosoftStategy } from 'passport-microsoft';
 
-import { GOOGLE_AUTH, MS_AUTH, OAuthSchemes, ERROR } from "../common/const";
-import { sendErrorResponse } from "../common/utils";
+import {
+  GOOGLE_AUTH,
+  MS_AUTH,
+  OAuthSchemes,
+  ERROR,
+  JWT_SECRET,
+} from '../common/const';
+import {
+  sendErrorResponse,
+  generateId,
+  sendJSONResponse,
+} from '../common/utils';
 
+import { User } from '../types/user';
+import { DBUser } from '../types/userRepository';
+import UserRepo from '../models/UserRepository';
+import * as common from '@propelr/common';
+
+const USER_DB = new UserRepo();
 
 passport.use(
   new GoogleStrategy(
     {
       clientID: GOOGLE_AUTH.CLIENT_ID,
       clientSecret: GOOGLE_AUTH.CLIENT_SECRET,
-      callbackURL: GOOGLE_AUTH.REDIRECT
+      callbackURL: GOOGLE_AUTH.REDIRECT,
     },
     (_a, _b, profile, done) => {
       return done(null, profile);
-    }
-  )
+      //return done(null, profile);
+    },
+  ),
 );
 
 passport.use(
@@ -29,16 +46,20 @@ passport.use(
       callbackURL: MS_AUTH.REDIRECT,
       passReqToCallback: false,
     },
-    function(accessToken: any, refreshToken: any, profile: any, done: any) {
+    function (accessToken: any, refreshToken: any, profile: any, done: any) {
       return done(null, profile);
-    }
-  )
+      //return done(null, profile);
+    },
+  ),
 );
 
-export async function routeOAuth(ctx: Koa.Context, next: Koa.Next): Promise<void> {
-  console.log(ctx.path.split('/'))
+export async function routeOAuth(
+  ctx: Koa.Context,
+  next: Koa.Next,
+): Promise<void> {
+  console.log(ctx.path.split('/'));
   let params = ctx.path.split('/');
-  let scheme = params.find(e => OAuthSchemes[e])
+  let scheme = params.find((e) => OAuthSchemes[e]);
 
   if (!scheme) {
     sendErrorResponse(ctx, ERROR.oAuthSchemeNotFound);
@@ -48,52 +69,104 @@ export async function routeOAuth(ctx: Koa.Context, next: Koa.Next): Promise<void
   const state = Math.random().toString(36).substring(2, 15);
 
   let authScheme: {
-    provider: string,
-    scope: Array<string>
-    state: string,
+    provider: string;
+    scope: Array<string>;
+    state: string;
   } = {
-    provider: "",
+    provider: '',
     scope: [],
     state: state,
   };
 
   switch (scheme) {
-    case "google":
-      authScheme.provider = "google";
-      authScheme.scope = ["email", "profile"]
+    case 'google':
+      authScheme.provider = 'google';
+      authScheme.scope = ['email', 'profile'];
       break;
-    case "microsoft":
-      authScheme.provider = "microsoft";
-      authScheme.scope = ["User.Read"];
+    case 'microsoft':
+      authScheme.provider = 'microsoft';
+      authScheme.scope = ['User.Read'];
       break;
   }
 
-  await passport.authenticate(authScheme.provider,
-    {
-      scope: authScheme.scope,
-      state: state,
-
-    }
-  )(ctx, next);
+  await passport.authenticate(authScheme.provider, {
+    scope: authScheme.scope,
+    state: state,
+  })(ctx, next);
 }
 
-export async function routeOAuthCallback(ctx: Koa.Context, next: Koa.Next): Promise<void> {
+export async function routeOAuthCallback(
+  ctx: Koa.Context,
+  next: Koa.Next,
+): Promise<void> {
   let params = ctx.path.split('/');
-  let scheme = params.find(e => OAuthSchemes[e])
+  let scheme = params.find((e) => OAuthSchemes[e]);
 
   if (!scheme) {
     sendErrorResponse(ctx, ERROR.oAuthSchemeNotFound);
     return;
   }
 
-  passport.authenticate(scheme, async (err, user, info) => {
-    if (err) {
-      console.log(err, info);
-      sendErrorResponse(ctx, ERROR.badOAuthCallback);
-      return;
-    }
-    console.log(user)
-    // google: user.email, user.language, user.photos[0].value
-    // microsoft: user.userPrincipalName, user.preferredLanguage, us
-  })(ctx, next);
+  let callback;
+  try {
+  callback = await new Promise((resolve, reject) => {
+    let scheme = params.find((e) => OAuthSchemes[e]) as string;
+    passport.authenticate(scheme, async (err, user) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(user)
+      }
+    })(ctx, next);
+
+  })
+  } catch (err) {
+    console.log(err);
+    sendErrorResponse(ctx, ERROR.badOAuthCallback);
+    return;
+  }
+
+  let user: any = callback;
+  await USER_DB.init();
+
+  // TODO: this currently works since we have two schemes
+  const foundUser = await USER_DB.getUserByEmail(
+    user?.email || user?.userPrincipalName,
+  );
+
+  if (foundUser) {
+    sendErrorResponse(ctx, ERROR.userAlreadyExists);
+    return;
+  }
+
+  const userToPush: DBUser = {
+    id: generateId(16),
+    email: user?.email ?? user?.userPrincipalName,
+    password: generateId(16), // TODO: find a better way to generate password
+  };
+
+  let pushedUser = await USER_DB.pushUser(userToPush);
+
+  if (!pushedUser) {
+    sendErrorResponse(ctx, ERROR.internalError);
+    return;
+  }
+
+  let jwt_payload: any = {
+    id: pushedUser.id,
+    email: pushedUser.email,
+  };
+
+  let token = common.jwt.sign(jwt_payload, JWT_SECRET);
+
+  sendJSONResponse(ctx, {
+    success: {
+      message: 'Successfully registered',
+      token,
+    },
+    status: 200,
+  });
+
+
+
 }
