@@ -1,5 +1,6 @@
 import { Error } from '../types/const';
-import { bloomTable as BloomTable } from '@propelr/common';
+import { ERROR, JWT_SECRET } from "./const";
+import { bloomTable as BloomTable, jwt} from '@propelr/common';
 import crypto from 'node:crypto';
 import draco from "dracoql";
 
@@ -18,6 +19,15 @@ export function sendErrorResponse(ctx: Koa.Context, err: Error) {
   });
   ctx.set('Content-type', 'application/json');
   ctx.status = err.status;
+}
+
+
+export function validateTokenOrSendError(ctx: Koa.Context): void {
+  let popped = ctx.headers?.authorization?.split(" ")?.pop();
+  if (!ctx.headers.authorization || !popped || !jwt.verify(popped, JWT_SECRET)) {
+    sendErrorResponse(ctx, ERROR.unauthorized);
+    return;
+  }
 }
 
 export function verifyDracoSyntax(syn: string): boolean {

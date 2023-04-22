@@ -1,9 +1,14 @@
 import Koa from 'koa';
 
-import { ERROR } from '../common/const';
-import { sendErrorResponse, sendJSONResponse } from '../common/utils';
+import { ERROR, JWT_SECRET } from '../common/const';
+import { 
+  sendErrorResponse, 
+  sendJSONResponse,
+  validateTokenOrSendError,
+} from '../common/utils';
 
 import { USER_DB } from '../models/UserRepository';
+import * as common from "@propelr/common";
 
 async function handleGet(ctx: Koa.Context): Promise<void> {
   let users = await USER_DB.getUsers();
@@ -27,10 +32,42 @@ async function handleGet(ctx: Koa.Context): Promise<void> {
   });
 }
 
+async function handleDelete(ctx: Koa.Context): Promise<void> {
+  const jwtString = ctx.headers?.["authorization"]?.split(" ").pop() ?? "";
+
+  if (!common.jwt.verify(jwtString, JWT_SECRET)) {
+    sendErrorResponse(ctx, ERROR.unauthorized);
+    return;
+  }
+
+  const parsedToken = common.jwt.parse(jwtString, JWT_SECRET);
+
+  if (!parsedToken) {
+    sendErrorResponse(ctx, ERROR.unauthorized);
+    return;
+  }
+
+  const userDeleted = await USER_DB.deleteUserByEmail(parsedToken.email);
+
+  if (!userDeleted) {
+    sendErrorResponse(ctx, ERROR.internalError);
+  }
+
+  sendJSONResponse(ctx, {
+    success: {
+      message: "Deleted user",
+    },
+    status: 200,
+  });
+}
+
 export default async function (ctx: Koa.Context): Promise<void> {
   switch (ctx.method) {
     case "GET":
       await handleGet(ctx);
+      break;
+    case "DELETE":
+      await handleDelete(ctx);
       break;
     default: 
       sendErrorResponse(ctx, ERROR.invalidMethod);

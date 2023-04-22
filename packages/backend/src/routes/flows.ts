@@ -7,15 +7,9 @@ import * as common from '@propelr/common';
 import { DBFlow } from '../types/userRepository';
 import { USER_DB } from '../models/UserRepository';
 
-function validateTokenOrSendError(ctx: Koa.Context): void {
-  if (!ctx.headers.authorization || common.jwt.verify(ctx.headers?.authorization?.split(' ')?.[1], JWT_SECRET)) {
-    utils.sendErrorResponse(ctx, ERROR.unauthorized);
-    return;
-  }
-}
 
 async function handlePost(ctx: Koa.Context): Promise<void> {
-  validateTokenOrSendError(ctx);
+  utils.validateTokenOrSendError(ctx);
 
   // we already validate this
   let target = ctx.headers.authorization as any;
@@ -68,7 +62,7 @@ async function handlePost(ctx: Koa.Context): Promise<void> {
 
 
 async function handleGet(ctx: Koa.Context): Promise<void> {
-  validateTokenOrSendError(ctx);
+  utils.validateTokenOrSendError(ctx);
 
   // we already validate this
   let target = ctx.headers.authorization as any;
