@@ -1,6 +1,6 @@
 import Koa from 'koa';
 
-import { ERROR, isProd, ABSTRACT_API } from '../common/const';
+import { ERROR, isProd, ABSTRACT_API, JWT_SECRET } from '../common/const';
 import {
   sendErrorResponse,
   invalidEmailBloomTable,
@@ -64,16 +64,24 @@ export default async function (ctx: Koa.Context): Promise<void> {
     password: data.password,
   }
 
-  const pushedUser = USER_DB.pushUser(user);
+  let pushedUser: DBUser | null = await USER_DB.pushUser(user);
+  
+  if (!pushedUser) {
+    sendErrorResponse(ctx, ERROR.internalError);
+    return;
+  }
 
-  ////////////////////////////////
-  // TODO: ADD USER TO DATABASE //
-  ////////////////////////////////
+  let jwt_payload: any = {
+    id: pushedUser.id,
+    email: pushedUser.email
+  }
+  
+  let token = common.jwt.sign(jwt_payload, JWT_SECRET);
 
   sendJSONResponse(ctx, {
     success: {
       message: 'Successfully registered',
-      token: 1234,
+      token,
     },
     status: 200,
   });

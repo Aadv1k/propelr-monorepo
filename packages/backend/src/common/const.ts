@@ -9,6 +9,8 @@ export const PORT = 3000;
 
 export const isProd = process.env?.NODE_ENV === "production" ? true : false;
 
+export const JWT_SECRET = process.env.JWT_SECRET ?? "default";
+
 export const ABSTRACT_API = {
   KEY: process.env.ABSTRACT_API_KEY ?? "",
 }
@@ -44,6 +46,13 @@ export const ERROR: Errors = {
     message: "Invalid MIME type",
     details: "The provided MIME type is not valid. Please provide a valid MIME type in the request",
     status: 400,
+  },
+
+  internalError: {
+    code: "internal-error",
+    message: "Internal server error",
+    details: "An internal server error occurred",
+    status: 500
   },
   
   invalidMethod: {
