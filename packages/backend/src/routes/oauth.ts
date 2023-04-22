@@ -27,10 +27,9 @@ passport.use(
       clientID: MS_AUTH.CLIENT_ID,
       clientSecret: MS_AUTH.CLIENT_SECRET,
       callbackURL: MS_AUTH.REDIRECT,
-      passReqToCallback: true,
-      scope: ["openid", "email", "profile"]
+      passReqToCallback: false,
     },
-    (_a: any, _b: any, profile: any, done: any) => {
+    function(accessToken: any, refreshToken: any, profile: any, done: any) {
       return done(null, profile);
     }
   )
@@ -51,21 +50,21 @@ export async function routeOAuth(ctx: Koa.Context, next: Koa.Next): Promise<void
   let authScheme: {
     provider: string,
     scope: Array<string>
+    state: string,
   } = {
     provider: "",
     scope: [],
+    state: state,
   };
 
-  console.log(scheme);
   switch (scheme) {
-
     case "google":
       authScheme.provider = "google";
       authScheme.scope = ["email", "profile"]
       break;
     case "microsoft":
       authScheme.provider = "microsoft";
-      authScheme.scope = ["openid", "email", "profile"]
+      authScheme.scope = ["User.Read"];
       break;
   }
 
@@ -73,6 +72,7 @@ export async function routeOAuth(ctx: Koa.Context, next: Koa.Next): Promise<void
     {
       scope: authScheme.scope,
       state: state,
+
     }
   )(ctx, next);
 }
@@ -94,5 +94,6 @@ export async function routeOAuthCallback(ctx: Koa.Context, next: Koa.Next): Prom
     }
     console.log(user)
     // google: user.email, user.language, user.photos[0].value
+    // microsoft: user.userPrincipalName, user.preferredLanguage, us
   })(ctx, next);
 }
