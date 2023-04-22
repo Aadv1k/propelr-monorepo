@@ -29,6 +29,12 @@ export function sign(obj: any, secret: string) {
   return `${head}.${payload}.${tail}`;
 }
 
+export function parse(token: string, secret: string): any | null {
+  if (!verify(token, secret)) return null;
+  const [_a, payload, _b] = token.split('.');
+  return JSON.parse(b64Decode(payload));
+}
+
 export function verify(token: string, secret: string): boolean {
   const split = token.split('.');
 
@@ -46,3 +52,4 @@ export function verify(token: string, secret: string): boolean {
 
   return true;
 }
+
