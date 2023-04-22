@@ -1,11 +1,7 @@
 import Koa from 'koa';
 
 import { ERROR, JWT_SECRET } from '../common/const';
-import {
-  sendErrorResponse,
-  sendJSONResponse,
-  verifyDracoSyntax
-} from '../common/utils';
+import * as utils from '../common/utils';
 
 import * as common from '@propelr/common';
 import { DBFlow } from '../types/userRepository';
@@ -13,48 +9,103 @@ import UserRepo from '../models/UserRepository';
 
 const USER_DB = new UserRepo();
 
-export default async function (ctx: Koa.Context): Promise<void> {
-  /*
-  let parsedToken = common.jwt.parse(ctx.headers?.authorization?.split(' ')?.[1] ?? "", JWT_SECRET);
-  if (!ctx.headers.authorization || !parsedToken) {
-    sendErrorResponse(ctx, ERROR.unauthorized);
+function validateTokenOrSendError(ctx: Koa.Context): void {
+  if (!ctx.headers.authorization || common.jwt.verify(ctx.headers?.authorization?.split(' ')?.[1], JWT_SECRET)) {
+    utils.sendErrorResponse(ctx, ERROR.unauthorized);
     return;
   }
-  */
-  
+}
 
-  if (ctx.method !== "POST") {
-    sendErrorResponse(ctx, ERROR.invalidMethod);
-    return;
-  }
-
+async function handlePost(ctx: Koa.Context): Promise<void> {
   if (ctx.headers["content-type"] !== "application/json") {
-    sendErrorResponse(ctx, ERROR.invalidMime);
+    utils.sendErrorResponse(ctx, ERROR.invalidMime);
     return;
   }
 
   if (!ctx.request.body) {
-    sendErrorResponse(ctx, ERROR.invalidJSON);
+    utils.sendErrorResponse(ctx, ERROR.invalidJSON);
     return;
   }
 
   const data = ctx.request.body as DBFlow;
 
   if (!data?.query) {
-    sendErrorResponse(ctx, ERROR.badInput);
+    utils.sendErrorResponse(ctx, ERROR.badInput);
     return;
   }
 
-  if (!verifyDracoSyntax(data.query)) {
-    sendErrorResponse(ctx, ERROR.invalidDracoSyntax);
+  if (!utils.verifyDracoSyntax(data.query)) {
+    utils.sendErrorResponse(ctx, ERROR.invalidDracoSyntax);
     return;
   }
 
-  sendJSONResponse(ctx, {
-    success: {
-      message: "TODO, this needs to be implemented",
-    },
+  const flow: DBFlow = {
+    id: utils.generateId(16),
+    userid: "", // TODO: parsedToken.id,
+    query: data.query,
+    vars: data?.vars,
+  }
+
+  const pushedFlow = await USER_DB.pushFlow(flow);
+
+  if (!pushedFlow) {
+    utils.sendErrorResponse(ctx, ERROR.internalError);
+    return;
+  }
+
+  utils.sendJSONResponse(ctx, {
+      message: "Successfully added a flow",
+      data: {
+        id: flow.id,
+      },
     status: 200,
   });
+}
 
+
+async function handleGet(ctx: Koa.Context): Promise<void> {
+  validateTokenOrSendError(ctx);
+
+  // we already validate this
+  let target = ctx.headers.authorization as any;
+  let parsedToken = common.jwt.parse(target.split(' ')[1], JWT_SECRET)
+
+  const foundUser = await USER_DB.getUserByEmail(parsedToken.email);
+
+  if (!foundUser) {
+    utils.sendErrorResponse(ctx, ERROR.userNotFound);
+    return;
+  }
+
+  const foundFlows = await USER_DB.getFlowsByUserId(foundUser.id);
+  if (!foundFlows) {
+    utils.sendErrorResponse(ctx, ERROR.internalError);
+    return;
+  }
+
+  utils.sendJSONResponse(ctx, {
+    message: "Success",
+    data: [
+      ...foundFlows
+    ],
+    status: 200,
+  }, 200)
+}
+
+export default async function (ctx: Koa.Context): Promise<void> {
+  await USER_DB.init();
+
+  switch (ctx.method) {
+    case "POST":
+      await handlePost(ctx);
+      break;
+    case "GET":
+      await handleGet(ctx);
+      break;
+    default: 
+      utils.sendErrorResponse(ctx, ERROR.invalidMethod);
+      break;
+  }
+
+  await USER_DB.close();
 }

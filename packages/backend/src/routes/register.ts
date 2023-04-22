@@ -91,7 +91,9 @@ export default async function (ctx: Koa.Context): Promise<void> {
   sendJSONResponse(ctx, {
     success: {
       message: 'Successfully registered',
-      token,
+      data: {
+        token,
+      }
     },
     status: 200,
   });
