@@ -13,8 +13,9 @@ app.use(bodyParser({}));
 const ROUTES = {
   apiOAuthCallback: /^\/api\/oauth\/[\w-]+\/callback\/?$/,
   apiOAuth: /^\/api\/oauth\/[\w-]+\/?$/,
-  apiRegister: /^\/api\/register$/,
-  apiLogin: /^\/api\/login$/,
+  apiUsersRegister: /^\/api\/users\/register$/,
+  apiUsersLogin: /^\/api\/users\/login$/,
+  apiUsers: /^\/api\/users\/$/,
   index: /^\/$/,
 };
 
@@ -28,16 +29,17 @@ app.use(async (ctx: Koa.Context, next) => {
       <a href="/api/oauth/google">login with google</a>
       <a href="/api/oauth/microsoft">login with microsoft</a>
       `;
-  } else if (ctx.path.match(ROUTES.apiRegister)) {
+  } else if (ctx.path.match(ROUTES.apiUsersRegister)) {
     await routeRegister(ctx);
+  } else if (ctx.path.match(ROUTES.apiUsersLogin)) {
+    await routeLogin(ctx);
+  } else if (ctx.path.match(ROUTES.apiUsers)) {
+
   } else if (ctx.path.match(ROUTES.apiOAuthCallback)) {
     await routeOAuthCallback(ctx, next);
   } else if (ctx.path.match(ROUTES.apiOAuth)) {
     await routeOAuth(ctx, next);
-  } else if (ctx.path.match(ROUTES.apiLogin)) {
-    await routeLogin(ctx, next);
-  }
-  await next();
+  }   await next();
 });
 
 export default app;

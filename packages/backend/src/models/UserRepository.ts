@@ -37,6 +37,9 @@ export default class {
   async getUserByEmail(email: string): Promise<DBUser | null> {
     /* TODO */ return null;
   }
+  async getUsers(): Promise<Array<DBUser> | null> {
+    /* TODO */ return null;
+  }
 
   async pushFlow(flow: DBFlow): Promise<DBFlow | null> {
     /* TODO */ return null;
