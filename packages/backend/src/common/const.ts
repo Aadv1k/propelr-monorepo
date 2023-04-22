@@ -25,6 +25,11 @@ export const MS_AUTH = {
   REDIRECT: "http://localhost:3000/api/oauth/microsoft/callback"
 }
 
+export const ATLAS = {
+  PASSWORD: process.env.ATLAS_PASSWORD ?? "",
+  USER: process.env.ATLAS_USER ?? "",
+}
+
 export const OAuthSchemes = {
   google: "google",
   microsoft: "microsoft",

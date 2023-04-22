@@ -5,11 +5,18 @@ import {
   sendErrorResponse,
   invalidEmailBloomTable,
   sendJSONResponse,
+  generateId
 } from '../common/utils';
 import * as common from '@propelr/common';
 import { User } from '../types/user';
+import { DBUser } from '../types/userRepository';
+import UserRepo from "../models/UserRepository";
+
+const USER_DB = new UserRepo();
 
 export default async function (ctx: Koa.Context): Promise<void> {
+  await USER_DB.init();
+
   if (ctx.method !== "POST") {
     sendErrorResponse(ctx, ERROR.invalidMethod);
     return;
@@ -50,6 +57,14 @@ export default async function (ctx: Koa.Context): Promise<void> {
     }
     return;
   }
+
+  const user: DBUser = {
+    id: generateId(16),
+    email: data.email,
+    password: data.password,
+  }
+
+  const pushedUser = USER_DB.pushUser(user);
 
   ////////////////////////////////
   // TODO: ADD USER TO DATABASE //

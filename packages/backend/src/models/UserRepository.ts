@@ -1,5 +1,6 @@
 import { MongoClient } from "mongodb";
 import { DBUser, DBFlow } from "../types/userRepository";
+import { ATLAS } from "../common/const";
 
 export default class {
   client: MongoClient;
@@ -8,7 +9,9 @@ export default class {
   db: any;
 
   constructor() {
-    this.client = new MongoClient("");
+    this.client = new MongoClient(
+      `mongodb+srv://${ATLAS.USER}:${ATLAS.PASSWORD}@propelr-dev.bvw8txe.mongodb.net/?retryWrites=true&w=majority`
+    );
     this.db = null;
     this.flows = null;
     this.users = null;
@@ -32,4 +35,8 @@ export default class {
   async pushFlow(flow: DBFlow): Promise<DBFlow | null> { /* TODO */ return null; };
   async deleteFlowByUserId(userId: string): Promise<DBFlow | null> { /* TODO */ return null; };
   async getFlowByUserId(userId: string): Promise<DBFlow | null> { /* TODO */ return null; };
+
+  async close() {
+    await this.client.close();
+  }
 }
