@@ -4,7 +4,6 @@ import { ERROR, JWT_SECRET } from '../common/const';
 import { 
   sendErrorResponse, 
   sendJSONResponse,
-  validateTokenOrSendError,
 } from '../common/utils';
 
 import { USER_DB } from '../models/UserRepository';
@@ -40,7 +39,7 @@ async function handleDelete(ctx: Koa.Context): Promise<void> {
     return;
   }
 
-  const parsedToken = common.jwt.parse(jwtString, JWT_SECRET);
+  const parsedToken = common.jwt.parse(jwtString);
 
   if (!parsedToken) {
     sendErrorResponse(ctx, ERROR.unauthorized);

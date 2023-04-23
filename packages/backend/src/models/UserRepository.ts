@@ -30,7 +30,7 @@ export default class UserRepo {
 
   async pushUser(user: DBUser): Promise<DBUser | null> {
     try {
-      this.users.insertOne(user);
+      await this.users.insertOne(user);
       return user;
     } catch (err) {
       return null;
@@ -38,7 +38,7 @@ export default class UserRepo {
   }
   async deleteUserByEmail(email: string): Promise<boolean | null> {
     try {
-      this.users.deleteOne({ email, })
+      await this.users.deleteOne({ email, })
       return true;
     } catch (err) {
       return null;
@@ -47,7 +47,7 @@ export default class UserRepo {
 
   async getUserByEmail(email: string): Promise<DBUser | null> {
     try {
-      const user = this.users.findOne({ email, })
+      const user = await this.users.findOne({ email, })
       return user;
     } catch (err) {
       return null;
@@ -56,7 +56,7 @@ export default class UserRepo {
 
   async getUsers(): Promise<Array<DBUser> | null> {
     try {
-      const user = this.users.find({}).toArray();
+      const user = await this.users.find({}).toArray();
       return user;
     } catch (err) {
       return null;
@@ -65,8 +65,37 @@ export default class UserRepo {
 
   async pushFlow(flow: DBFlow): Promise<DBFlow | null> {
     try {
-      const flw = this.flows.insertOne(flow);
+      const flw = await this.flows.insertOne(flow);
       return flw;
+    } catch (err) {
+      return null;
+    }
+  }
+
+  async flowExists(flowid: string): Promise<boolean> {
+    const flw = await this.flows.findOne({ id: flowid });
+    if (flw) return true;
+    return false;
+  }
+
+  async getFlowById(flowid: string): Promise<DBFlow | null>  {
+    try {
+      const flw = await this.flows.findOne({ id: flowid });
+      return flw;
+    } catch (err) {
+      return null;
+    }
+  }
+
+  async deleteFlowById(flowid: string): Promise<any | null> {
+    try {
+      const deleted = await this.flows.deleteOne({ id: flowid })
+      if (deleted.deletedCount === 0) {
+        return null;
+      } 
+      return { 
+        id: flowid
+      };
     } catch (err) {
       return null;
     }
@@ -74,7 +103,7 @@ export default class UserRepo {
 
   async deleteFlowByUserId(userId: string): Promise<boolean | null> {
     try {
-      this.users.deleteOne({ userid: userId })
+      await this.users.deleteOne({ userid: userId })
       return true;
     } catch (err) {
       return null;
@@ -83,7 +112,7 @@ export default class UserRepo {
 
   async getFlowsByUserId(userId: string): Promise<Array<DBFlow> | null> {
     try {
-      const flows = this.flows.find({ userid: userId }).toArray();
+      const flows = await this.flows.find({ userid: userId }).toArray();
       return flows;
     } catch (err) {
       return null;

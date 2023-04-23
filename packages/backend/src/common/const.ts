@@ -62,6 +62,13 @@ export const ERROR: Errors = {
     status: 404,
   },
 
+  flowNotFound: {
+    code: 'flow-not-found',
+    message: 'Flow not found',
+    details: 'The flow was not found. Please check the id and try again.',
+    status: 404,
+  },
+
   invalidPassword: {
     code: 'invalid-password',
     message: 'Invalid password',

@@ -25,7 +25,7 @@ const ROUTES = {
   apiUsersRegister: /^\/api\/users\/register$/,
   apiUsersLogin: /^\/api\/users\/login$/,
   apiUsers: /^\/api\/users\/$/,
-  apiFlows: /^\/api\/flows\/$/,
+  apiFlows: /^\/api\/flows\/([^\/]+)?/,
   index: /^\/$/,
 };
 
