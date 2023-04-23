@@ -5,7 +5,6 @@
   "main": "./dist/index",
   "scripts": {
     "build": "tsc",
-    "build:esm": "tsc --outdir ./dist/esm --module esnext",
     "dev": "tsc --watch"
   },
   "author": "Aadvik<aadv1k@outlook.com>",

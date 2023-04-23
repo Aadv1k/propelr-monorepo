@@ -28,23 +28,17 @@ export function sign(obj: any, secret: string) {
   return `${head}.${payload}.${tail}`;
 }
 
-export function parse(token: string, secret: string): any | null {
+export function parse(token: string): any {
+  let payload;
   try {
-    if (!verify(token, secret)) return null;
-    let payload;
-    try {
-      payload = token.split('.')[2];
-    } catch (err) {
-      return null;
-    }
-    return JSON.parse(b64Decode(payload));
-  } catch {
+    payload = token.split('.')[1];
+  } catch (err) {
     return null;
   }
+  return JSON.parse(b64Decode(payload));
 }
 
 export function verify(token: string, secret: string): boolean {
-  try {
     const split = token.split('.');
 
     if (split.length !== 3) return false;
@@ -60,9 +54,6 @@ export function verify(token: string, secret: string): boolean {
     if (decoded !== tail) return false;
 
     return true;
-  } catch {
-    return false;
-  }
 }
 
 
