@@ -161,19 +161,8 @@ async function handleGet(ctx: Koa.Context): Promise<void> {
   }, 200)
 }
 
-export default async function (ctx: Koa.Context): Promise<void> {
-  switch (ctx.method) {
-    case "POST":
-      await handlePost(ctx);
-      break;
-    case "GET":
-      await handleGet(ctx);
-      break;
-    case "DELETE":
-      await handleDelete(ctx);
-      break;
-    default: 
-      utils.sendErrorResponse(ctx, ERROR.invalidMethod);
-      break;
-  }
+export {
+  handleGet as handleFlowsGet,
+  handlePost as handleFlowsPost,
+  handleDelete as handleFlowsDelete
 }

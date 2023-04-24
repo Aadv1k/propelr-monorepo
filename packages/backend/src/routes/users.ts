@@ -60,16 +60,7 @@ async function handleDelete(ctx: Koa.Context): Promise<void> {
   });
 }
 
-export default async function (ctx: Koa.Context): Promise<void> {
-  switch (ctx.method) {
-    case "GET":
-      await handleGet(ctx);
-      break;
-    case "DELETE":
-      await handleDelete(ctx);
-      break;
-    default: 
-      sendErrorResponse(ctx, ERROR.invalidMethod);
-      break;
-  }
+export {
+  handleDelete as routeUsersDelete,
+  handleGet as routeUsersGet
 }

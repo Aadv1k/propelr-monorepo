@@ -48,6 +48,13 @@ export const ERROR: Errors = {
     status: 400,
   },
 
+  notFound: {
+    code: 'not-found',
+    message: 'Resource not found',
+    details: 'was unable to find the requested resource',
+    status: 404,
+  },
+
   unauthorized: {
     code: 'unauthorized',
     message: 'Unauthorized',

@@ -4,29 +4,38 @@ import passport from 'koa-passport';
 
 import { routeOAuth, routeOAuthCallback } from './routes/oauth';
 
-import routeUsersRegister from './routes/register';
-import routeUsersLogin from './routes/login';
-import routeUsers from "./routes/users";
+import routeRegister from './routes/register';
+import routeLogin from './routes/login';
+
+import { routeUsersGet, routeUsersDelete } from './routes/users';
 
 import { USER_DB } from './models/UserRepository';
 
-import routeFlows from "./routes/flows";
- 
+import {
+  handleFlowsGet as routeFlowsGet,
+  handleFlowsPost as routeFlowsPost,
+  handleFlowsDelete as routeFlowsDelete,
+} from './routes/flows';
 
 const app = new Koa();
 
-app.use(bodyParser({
-  onerror: () => {}
-}));
+import * as utils from './common/utils';
+import { ERROR } from './common/const';
+
+app.use(
+  bodyParser({
+    onerror: () => {},
+  }),
+);
 
 const ROUTES = {
-  apiOAuthCallback: /^\/api\/oauth\/[\w-]+\/callback\/?$/,
-  apiOAuth: /^\/api\/oauth\/[\w-]+\/?$/,
-  apiUsersRegister: /^\/api\/users\/register$/,
-  apiUsersLogin: /^\/api\/users\/login$/,
-  apiUsers: /^\/api\/users\/$/,
-  apiFlows: /^\/api\/flows\/([^\/]+)?/,
-  index: /^\/$/,
+  '/api/users': /^\/api\/users\/?$/,
+  '/api/users/:id': /^\/api\/users\/[a-zA-Z0-9_-]+\/?$/,
+  '/api/users/register': /^\/api\/users\/register\/?$/,
+  '/api/users/login': /^\/api\/users\/login\/?$/,
+  '/api/flows': /^\/api\/flows\/?$/,
+  '/api/flows/:id': /^\/api\/flows\/[a-zA-Z0-9_-]+\/?$/,
+  '/api/oauth/callback': /^\/api\/oauth\/callback\/?$/,
 };
 
 app.use(passport.initialize());
@@ -41,20 +50,33 @@ app.use(async (ctx: Koa.Context, next) => {
       <a href="/api/oauth/google">login with google</a>
       <a href="/api/oauth/microsoft">login with microsoft</a>
       `;
-  } else if (ctx.path.match(ROUTES.apiUsersRegister)) {
-    await routeUsersRegister(ctx);
-  } else if (ctx.path.match(ROUTES.apiUsersLogin)) {
-    await routeUsersLogin(ctx);
-  } else if (ctx.path.match(ROUTES.apiUsers)) {
-    await routeUsers(ctx);
-  } else if (ctx.path.match(ROUTES.apiOAuthCallback)) {
+  } else if (ctx.url.match(ROUTES['/api/flows']) && ctx.method === 'GET') {
+    await routeFlowsGet(ctx);
+  } else if (ctx.url.match(ROUTES['/api/flows']) && ctx.method === 'POST') {
+    await routeFlowsPost(ctx);
+  } else if (ctx.url.match(ROUTES['/api/flows']) && ctx.method === 'DELETE') {
+    await routeFlowsDelete(ctx);
+  } else if (ctx.url.match(ROUTES['/api/users/login']) && ctx.method === 'POST') {
+    await routeLogin(ctx);
+  } else if (ctx.url.match(ROUTES['/api/users/register']) && ctx.method === 'POST') {
+    await routeRegister(ctx);
+  } else if (ctx.url.match(ROUTES['/api/users']) && ctx.method === 'GET') {
+    await routeUsersGet(ctx);
+  } else if (ctx.url.match(ROUTES['/api/users']) && ctx.method === 'DELETE') {
+    await routeUsersDelete(ctx);
+  } else if (ctx.url.match(ROUTES['/api/oauth/callback']) && ctx.method === 'GET') {
     await routeOAuthCallback(ctx, next);
-  } else if (ctx.path.match(ROUTES.apiOAuth)) {
-    await routeOAuth(ctx, next);
-  } else if (ctx.path.match(ROUTES.apiFlows)) {
-    await routeFlows(ctx);
   }
   await next();
+});
+
+app.use((ctx) => {
+  utils.sendErrorResponse(ctx, ERROR.notFound);
+
+})
+
+process.on('exit', async () => {
+  await USER_DB.close();
 });
 
 export default app;
