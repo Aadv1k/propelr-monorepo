@@ -68,13 +68,23 @@ async function handlePost(ctx: Koa.Context): Promise<void> {
     return;
   }
 
-  if (!utils.verifyDracoSyntax(data.query)) {
-    utils.sendErrorResponse(ctx, ERROR.invalidDracoSyntax);
+  try {
+    await runDracoQueryAndGetVar(data.query, []);
+  } catch (err: any) {
+    utils.sendJSONResponse(ctx, {
+      error: {
+        code: "invalid-draco-syntax",
+        message: `Syntax check failed with "${err.name}"`,
+        details: err.message
+      },
+      status: 400,
+    }, 400);
     return;
   }
 
+
   const flow: DBFlow = {
-    id: utils.generateId(16),
+    id: utils.generateId(8),
     userid: parsedToken.id,
     query: data.query,
     vars: data?.vars,
@@ -127,11 +137,9 @@ async function handleExecute(ctx: Koa.Context): Promise<void> {
   }
 
   let computedVars;
-  try {
-    computedVars = await runDracoQueryAndGetVar(`VAR foo = FETCH 'https://reddit.com/r/askreddit.json' 
-                  HEADER 'User-agent: Cool_app by /u/null' AS TEXT 
-      `, foundFlow.vars);
 
+  try {
+    computedVars = await runDracoQueryAndGetVar(foundFlow.query, foundFlow.vars);
   } catch (err: any) {
     utils.sendJSONResponse(ctx, {
       name: err.name,
@@ -140,7 +148,6 @@ async function handleExecute(ctx: Koa.Context): Promise<void> {
     return;
   }
 
-  console.log(computedVars);
   utils.sendJSONResponse(ctx, {
     message: computedVars
   })
