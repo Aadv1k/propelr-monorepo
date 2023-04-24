@@ -138,6 +138,7 @@ async function handleExecute(ctx: Koa.Context): Promise<void> {
 
   let computedVars;
 
+  const start: any = new Date()
   try {
     computedVars = await runDracoQueryAndGetVar(foundFlow.query, foundFlow.vars);
   } catch (err: any) {
@@ -148,8 +149,18 @@ async function handleExecute(ctx: Koa.Context): Promise<void> {
     return;
   }
 
+  const end: any = new Date();
+  computedVars = computedVars as any;
+  let ret: any = {};
+  for (let i = 0; i < computedVars.length; i++) {
+    ret[foundFlow.vars[i]] = computedVars[i].value;
+  }
+
+
   utils.sendJSONResponse(ctx, {
-    message: computedVars
+    data: ret,
+    message: `Parsed query in ${end - start}ms`,
+    status: 200,
   })
 }
 
