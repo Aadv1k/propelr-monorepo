@@ -3,6 +3,8 @@ import Koa from 'koa';
 import { ERROR, JWT_SECRET } from '../common/const';
 import * as utils from '../common/utils';
 
+import * as draco from "dracoql";
+
 import * as common from '@propelr/common';
 import { DBFlow } from '../types/userRepository';
 import { USER_DB } from '../models/UserRepository';
@@ -94,6 +96,20 @@ async function handlePost(ctx: Koa.Context): Promise<void> {
   });
 }
 
+function runDracoQueryAndGetVar(query: string, vars: Array<string>): Promise<Array<string>> | undefined {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const lexer = new draco.lexer(query);
+      const parser = new draco.parser(lexer.lex());
+      const interpreter = new draco.interpreter(parser.parse());
+      await interpreter.run();
+      resolve(vars.map(e => interpreter.getVar(e)));
+    } catch (err) {
+      reject(err);
+    }
+  })
+}
+
 async function handleExecute(ctx: Koa.Context): Promise<void> {
   let splitUrl = ctx.path.split('/')
   let flowToExecute = splitUrl?.[splitUrl.findIndex(e => e === "execute") - 1]
@@ -103,16 +119,31 @@ async function handleExecute(ctx: Koa.Context): Promise<void> {
     return;
   }
 
-  const flowExists = await USER_DB.flowExists(flowToExecute);
-  if (!flowExists) {
+  const foundFlow = await USER_DB.getFlowById(flowToExecute);
+
+  if (!foundFlow) {
     utils.sendErrorResponse(ctx, ERROR.flowNotFound);
     return;
   }
 
+  let computedVars;
+  try {
+    computedVars = await runDracoQueryAndGetVar(`VAR foo = FETCH 'https://reddit.com/r/askreddit.json' 
+                  HEADER 'User-agent: Cool_app by /u/null' AS TEXT 
+      `, foundFlow.vars);
+
+  } catch (err: any) {
+    utils.sendJSONResponse(ctx, {
+      name: err.name,
+      message: err.message
+    })
+    return;
+  }
+
+  console.log(computedVars);
   utils.sendJSONResponse(ctx, {
-    message: "Still in todo"
-  });
-  console.log("alright mate");
+    message: computedVars
+  })
 }
 
 async function handleGet(ctx: Koa.Context): Promise<void> {
@@ -120,14 +151,6 @@ async function handleGet(ctx: Koa.Context): Promise<void> {
 
   if (!common.jwt.verify(jwtString, JWT_SECRET)) {
     utils.sendErrorResponse(ctx, ERROR.unauthorized);
-    return;
-  }
-
-  let splitUrl = ctx.path.split('/')
-  let flowToExecute = splitUrl?.[splitUrl.findIndex(e => e === "execute") - 1]
-
-  if (flowToExecute) {
-    handleExecute(ctx);
     return;
   }
 
@@ -164,5 +187,7 @@ async function handleGet(ctx: Koa.Context): Promise<void> {
 export {
   handleGet as handleFlowsGet,
   handlePost as handleFlowsPost,
-  handleDelete as handleFlowsDelete
+  handleDelete as handleFlowsDelete,
+  handleExecute as handleFlowsExecute,
+
 }

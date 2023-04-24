@@ -15,6 +15,7 @@ import {
   handleFlowsGet as routeFlowsGet,
   handleFlowsPost as routeFlowsPost,
   handleFlowsDelete as routeFlowsDelete,
+  handleFlowsExecute as routeFlowsIdExecute,
 } from './routes/flows';
 
 const app = new Koa();
@@ -36,6 +37,7 @@ const ROUTES = {
   '/api/flows': /^\/api\/flows\/?$/,
   '/api/flows/:id': /^\/api\/flows\/[a-zA-Z0-9_-]+\/?$/,
   '/api/oauth/callback': /^\/api\/oauth\/callback\/?$/,
+  "/api/flows/:id/execute": /^\/api\/flows\/[a-zA-Z0-9_-]+\/execute\/?$/,
 };
 
 app.use(passport.initialize());
@@ -56,6 +58,8 @@ app.use(async (ctx: Koa.Context, next) => {
     await routeFlowsPost(ctx);
   } else if (ctx.url.match(ROUTES['/api/flows']) && ctx.method === 'DELETE') {
     await routeFlowsDelete(ctx);
+  } else if (ctx.url.match(ROUTES['/api/flows/:id/execute']) && ctx.method === 'GET') {
+    await routeFlowsIdExecute(ctx);
   } else if (ctx.url.match(ROUTES['/api/users/login']) && ctx.method === 'POST') {
     await routeLogin(ctx);
   } else if (ctx.url.match(ROUTES['/api/users/register']) && ctx.method === 'POST') {
@@ -66,14 +70,12 @@ app.use(async (ctx: Koa.Context, next) => {
     await routeUsersDelete(ctx);
   } else if (ctx.url.match(ROUTES['/api/oauth/callback']) && ctx.method === 'GET') {
     await routeOAuthCallback(ctx, next);
+  } else {
+    utils.sendErrorResponse(ctx, ERROR.notFound);
   }
+
   await next();
 });
-
-app.use((ctx) => {
-  utils.sendErrorResponse(ctx, ERROR.notFound);
-
-})
 
 process.on('exit', async () => {
   await USER_DB.close();
