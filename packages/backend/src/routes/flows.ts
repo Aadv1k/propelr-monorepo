@@ -4,13 +4,97 @@ import * as draco from 'dracoql';
 import { ERROR, JWT_SECRET } from '../common/const';
 import * as utils from '../common/utils';
 import * as common from '@propelr/common';
-import { Flow } from '../types';
+import { Flow, FlowState } from '../types';
 import { USER_DB } from '../models/UserRepository';
 import flowSchema from "../schemas/flow";
+import { FLOW_RUNNER } from "../models/FlowRunner";
 
-async function getFlowPlay(ctx: Koa.Context): Promise<void> {
-  /* TODO */
+async function getFlowStop(ctx: Koa.Context): Promise<void> {
+  let splitUrl = ctx.path.split('/');
+  let flowToStop = splitUrl?.[splitUrl.findIndex((e) => e === 'flows') + 1];
 
+  if (!flowToStop) {
+    utils.sendErrorResponse(ctx, ERROR.badInput);
+    return;
+  }
+
+  const jwtString = ctx.headers?.['authorization']?.split(' ').pop() ?? '';
+
+  if (!common.jwt.verify(jwtString, JWT_SECRET)) {
+    utils.sendErrorResponse(ctx, ERROR.unauthorized);
+    return;
+  }
+  const foundFlow = await USER_DB.getFlowById(flowToStop);
+  if (!foundFlow) {
+    utils.sendErrorResponse(ctx, ERROR.flowNotFound);
+    return;
+  }
+
+  if (foundFlow.status !== FlowState.RUNNING) {
+    utils.sendErrorResponse(ctx, ERROR.flowNotRunning);
+    return;
+  }
+
+  try {
+    FLOW_RUNNER.stopFlowById(flowToStop);
+    await USER_DB.updateFlowFieldById(foundFlow.id, {status: FlowState.STOPPED})
+  } catch {
+    utils.sendErrorResponse(ctx, ERROR.internalError);
+    return;
+  }
+
+  utils.sendJSONResponse(ctx, {
+    message: "Stopped",
+    details: `${flowToStop} was stopped`,
+    data: {
+      id: flowToStop
+    }
+  }, 200)
+}
+
+async function getFlowStart(ctx: Koa.Context): Promise<void> {
+  let splitUrl = ctx.path.split('/');
+  let flowToStart = splitUrl?.[splitUrl.findIndex((e) => e === 'flows') + 1];
+
+  if (!flowToStart) {
+    utils.sendErrorResponse(ctx, ERROR.badInput);
+    return;
+  }
+
+  const jwtString = ctx.headers?.['authorization']?.split(' ').pop() ?? '';
+
+  if (!common.jwt.verify(jwtString, JWT_SECRET)) {
+    utils.sendErrorResponse(ctx, ERROR.unauthorized);
+    return;
+  }
+
+  const foundFlow = await USER_DB.getFlowById(flowToStart);
+  if (!foundFlow) {
+    utils.sendErrorResponse(ctx, ERROR.notFound);
+    return;
+  }
+
+  if (foundFlow.status === FlowState.RUNNING) {
+    utils.sendErrorResponse(ctx, ERROR.flowAlreadyRunning);
+    return;
+  }
+
+  try {
+    FLOW_RUNNER.startFlowById(flowToStart);
+  } catch (err) {
+    utils.sendErrorResponse(ctx, ERROR.internalError) // TODO: it is not a registered job
+    return;
+  }
+
+  await USER_DB.updateFlowFieldById(foundFlow.id, {status: FlowState.RUNNING})
+
+  utils.sendJSONResponse(ctx, {
+    message: "Running",
+    details: `${flowToStart} is now running`,
+    data: {
+      id: flowToStart
+    }
+  }, 200)
 }
 
 async function deleteFlow(ctx: Koa.Context): Promise<void> {
@@ -96,13 +180,18 @@ async function createFlow(ctx: Koa.Context): Promise<void> {
   }
 
   const flow: Flow = {
-    id: utils.generateId(8),
+    id: utils.generateId(4),
     userid: parsedToken.id as string,
+    status: FlowState.STOPPED,
     query: data.query,
     schedule: data.schedule,
     receiver: data.receiver,
     createdAt: Date.now(),
   };
+
+  FLOW_RUNNER.register(flow, (f: Flow) => {
+    console.log(f.id); // TODO: change this
+  })
 
   const pushedFlow = await USER_DB.pushFlow(flow as Flow);
 
@@ -231,4 +320,6 @@ export {
   createFlow,
   deleteFlow,
   getFlowExecute,
+  getFlowStart,
+  getFlowStop,
 };

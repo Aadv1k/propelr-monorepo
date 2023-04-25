@@ -66,6 +66,20 @@ export default class UserRepo {
     }
   }
 
+  async updateFlowFieldById(id: string, obj: any): Promise<string | null> {
+    try {
+      let result = await this.flows.updateOne({
+        id,
+      }, {
+        $set: obj
+      })
+      if (result.ok) return id;
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
   async pushFlow(flow: Flow): Promise<Flow | null> {
     try {
       const flw = await this.flows.insertOne(flow);
@@ -111,6 +125,11 @@ export default class UserRepo {
     } catch (err) {
       return null;
     }
+  }
+
+  async RAW_getFlows(query: any) {
+    const flows = await this.flows.find(query).toArray();
+    return flows;
   }
 
   async getFlowsByUserId(userId: string): Promise<Array<Flow> | null> {

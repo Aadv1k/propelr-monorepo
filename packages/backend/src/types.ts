@@ -22,10 +22,10 @@ export enum Recipients {
   discord = 'discord',
 }
 
-interface Schedule {
+export interface Schedule {
   type: "daily" | "weekly" | "monthly",
   time: string,
-  dayOfWeek?: string,
+  dayOfWeek?: number,
   dayOfMonth?: number
 }
 
@@ -39,9 +39,16 @@ interface Receiver {
   address: string,
 } 
 
+export enum FlowState {
+  RUNNING = "running",
+  STOPPED = "stopped",
+  FAILED = "failed"
+}
+
 export interface Flow {
   id: string;
   userid: string;
+  status: FlowState
   query: Query;
   createdAt: number,
   schedule: Schedule,

@@ -9,13 +9,18 @@ import routeLogin from './routes/login';
 
 import { routeUsersGet, routeUsersDelete } from './routes/users';
 
+import { Flow, FlowState } from "./types";
+
 import { USER_DB } from './models/UserRepository';
+import { FLOW_RUNNER } from "./models/FlowRunner";
 
 import {
   getFlow,
   deleteFlow,
   createFlow,
-  getFlowExecute
+  getFlowExecute,
+  getFlowStop,
+  getFlowStart,
 } from './routes/flows';
 
 const app = new Koa();
@@ -35,17 +40,27 @@ const ROUTES = {
   '/api/users/register': /^\/api\/users\/register\/?$/,
   '/api/users/login': /^\/api\/users\/login\/?$/,
   '/api/flows': /^\/api\/flows\/?$/,
-  '/api/flows/:id': /^\/api\/flows\/[a-zA-Z0-9_-]+\/?$/,
   '/api/oauth/callback': /^\/api\/oauth\/callback\/?$/,
+  '/api/flows/:id': /^\/api\/flows\/[a-zA-Z0-9_-]+\/?$/,
   "/api/flows/:id/execute": /^\/api\/flows\/[a-zA-Z0-9_-]+\/execute\/?$/,
-  "/api/flows/:id/play": /^\/api\/flows\/[a-zA-Z0-9_-]+\/play\/?$/,
-  "/api/flows/:id/pause": /^\/api\/flows\/[a-zA-Z0-9_-]+\/pause\/?$/,
+  "/api/flows/:id/start": /^\/api\/flows\/[a-zA-Z0-9_-]+\/start\/?$/,
+  "/api/flows/:id/stop": /^\/api\/flows\/[a-zA-Z0-9_-]+\/stop\/?$/,
 };
 
 app.use(passport.initialize());
 
 app.use(async (ctx: Koa.Context, next) => {
   await USER_DB.init();
+  let flows = await USER_DB.RAW_getFlows({});
+
+  flows.forEach((flow: Flow) => {
+    FLOW_RUNNER.register(flow, (f: any) => {
+      console.log(`should run: ${f.query.syntax}`);
+    })
+    if (flow.status === FlowState.RUNNING) {
+      FLOW_RUNNER.startFlowById(flow.id);
+    }
+  })
 
   if (ctx.path === '/') {
     ctx.set('Content-type', 'text/html');
@@ -62,6 +77,10 @@ app.use(async (ctx: Koa.Context, next) => {
     await deleteFlow(ctx);
   } else if (ctx.url.match(ROUTES['/api/flows/:id/execute']) && ctx.method === 'GET') {
     await getFlowExecute(ctx);
+  } else if (ctx.url.match(ROUTES['/api/flows/:id/start']) && ctx.method === 'GET') {
+    await getFlowStart(ctx);
+  } else if (ctx.url.match(ROUTES['/api/flows/:id/stop']) && ctx.method === 'GET') {
+    await getFlowStop(ctx);
   } else if (ctx.url.match(ROUTES['/api/users/login']) && ctx.method === 'POST') {
     await routeLogin(ctx);
   } else if (ctx.url.match(ROUTES['/api/users/register']) && ctx.method === 'POST') {

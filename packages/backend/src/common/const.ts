@@ -1,8 +1,9 @@
 import { httpErrors } from '../types';
 import dotenv from 'dotenv';
+import path from "node:path";
 
 dotenv.config({
-  path: '../../.env',
+  path: path.resolve(__dirname, "../../../.env"),
 });
 
 export const PORT = 3000;
@@ -45,6 +46,21 @@ export const ERROR: httpErrors = {
     code: 'invalid-MIME',
     message: 'Invalid MIME type',
     details: 'The provided MIME type is not valid. Please provide a valid MIME type in the request',
+    status: 400,
+  },
+
+  flowNotRunning: {
+    code: 'flow-not-running',
+    message: 'The flow is not running',
+    details: 'the flow that you are trying to stop is not running',
+    status: 400,
+  },
+
+
+  flowAlreadyRunning: {
+    code: 'flow-already-running',
+    message: 'The flow is already running',
+    details: 'the flow that you are trying to stop is already running',
     status: 400,
   },
 
