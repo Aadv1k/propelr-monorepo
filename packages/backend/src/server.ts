@@ -38,6 +38,8 @@ const ROUTES = {
   '/api/flows/:id': /^\/api\/flows\/[a-zA-Z0-9_-]+\/?$/,
   '/api/oauth/callback': /^\/api\/oauth\/callback\/?$/,
   "/api/flows/:id/execute": /^\/api\/flows\/[a-zA-Z0-9_-]+\/execute\/?$/,
+  "/api/flows/:id/play": /^\/api\/flows\/[a-zA-Z0-9_-]+\/play\/?$/,
+  "/api/flows/:id/pause": /^\/api\/flows\/[a-zA-Z0-9_-]+\/pause\/?$/,
 };
 
 app.use(passport.initialize());

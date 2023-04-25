@@ -23,10 +23,10 @@ export enum Recipients {
 }
 
 interface Schedule {
-  type: 'once' | 'weekly' | 'monthly';
-  date?: string;
-  dayOfWeek?: string;
-  dayOfMonth?: number;
+  type: "daily" | "weekly" | "monthly",
+  time: string,
+  dayOfWeek?: string,
+  dayOfMonth?: number
 }
 
 interface Query {

@@ -11,18 +11,55 @@ export default {
       required: ['syntax', 'vars'],
     },
     schedule: {
-      type: 'object',
-      properties: {
-        type: { type: 'string', enum: ['once', 'weekly', 'monthly'] },
-        date: { type: 'string', format: 'date-time' },
-        dayOfWeek: { type: 'string', enum: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] },
-        dayOfMonth: { type: 'number', minimum: 1, maximum: 31 },
-      },
-      anyOf: [
-        { required: ['type', 'date'] },
-        { required: ['type', 'dayOfWeek'] },
-        { required: ['type', 'dayOfMonth'] },
-      ],
+  type: "object",
+  properties: {
+    type: {
+      type: "string",
+      enum: ["daily", "weekly", "monthly"]
+    },
+    time: {
+      type: "string",
+      format: "time"
+    },
+    dayOfWeek: {
+      type: "string"
+    },
+    dayOfMonth: {
+      type: "integer",
+      minimum: 1,
+      maximum: 31
+    }
+  },
+  required: ["type", "time"],
+  dependencies: {
+    type: {
+      oneOf: [
+        {
+          properties: {
+            type: {
+              const: "weekly"
+            },
+            dayOfWeek: {
+              type: "string"
+            }
+          },
+          required: ["dayOfWeek"]
+        },
+        {
+          properties: {
+            type: {
+              const: "monthly"
+            },
+            dayOfMonth: {
+              type: "integer",
+              minimum: 1,
+              maximum: 31
+            }
+          },
+          required: ["dayOfMonth"]
+        }
+      ]
+    }
     },
     receiver: {
       type: 'object',

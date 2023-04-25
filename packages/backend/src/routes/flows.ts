@@ -8,6 +8,11 @@ import { Flow } from '../types';
 import { USER_DB } from '../models/UserRepository';
 import flowSchema from "../schemas/flow";
 
+async function getFlowPlay(ctx: Koa.Context): Promise<void> {
+  /* TODO */
+
+}
+
 async function deleteFlow(ctx: Koa.Context): Promise<void> {
   let splitUrl = ctx.path.split('/');
   let flowToDelete = splitUrl?.[splitUrl.findIndex((e) => e === 'flows') + 1];
