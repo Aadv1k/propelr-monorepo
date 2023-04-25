@@ -12,10 +12,9 @@ import { routeUsersGet, routeUsersDelete } from './routes/users';
 import { USER_DB } from './models/UserRepository';
 
 import {
-  handleFlowsGet as routeFlowsGet,
-  handleFlowsPost as routeFlowsPost,
-  handleFlowsDelete as routeFlowsDelete,
-  handleFlowsExecute as routeFlowsIdExecute,
+  getFlow,
+  deleteFlow,
+  getFlowExecute
 } from './routes/flows';
 
 const app = new Koa();
@@ -53,13 +52,13 @@ app.use(async (ctx: Koa.Context, next) => {
       <a href="/api/oauth/microsoft">login with microsoft</a>
       `;
   } else if (ctx.url.match(ROUTES['/api/flows']) && ctx.method === 'GET') {
-    await routeFlowsGet(ctx);
+    await getFlow(ctx);
   } else if (ctx.url.match(ROUTES['/api/flows']) && ctx.method === 'POST') {
-    await routeFlowsPost(ctx);
+    //await createFlow(ctx);
   } else if (ctx.url.match(ROUTES['/api/flows']) && ctx.method === 'DELETE') {
-    await routeFlowsDelete(ctx);
+    await deleteFlow(ctx);
   } else if (ctx.url.match(ROUTES['/api/flows/:id/execute']) && ctx.method === 'GET') {
-    await routeFlowsIdExecute(ctx);
+    await getFlowExecute(ctx);
   } else if (ctx.url.match(ROUTES['/api/users/login']) && ctx.method === 'POST') {
     await routeLogin(ctx);
   } else if (ctx.url.match(ROUTES['/api/users/register']) && ctx.method === 'POST') {
@@ -72,7 +71,7 @@ app.use(async (ctx: Koa.Context, next) => {
     await routeOAuthCallback(ctx, next);
   } else {
     utils.sendErrorResponse(ctx, ERROR.notFound);
-  }
+  } 
 
   await next();
 });

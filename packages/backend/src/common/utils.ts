@@ -1,14 +1,17 @@
-import { Error } from '../types/const';
+import { httpError } from '../types';
 import { ERROR, JWT_SECRET } from "./const";
 import { bloomTable as BloomTable, jwt} from '@propelr/common';
 import crypto from 'node:crypto';
 import * as draco from "dracoql";
 
 import Koa from 'koa';
+import Ajv from "ajv";
+
+const AJV = new Ajv();
 
 export const invalidEmailBloomTable = new BloomTable(10000, 10);
 
-export function sendErrorResponse(ctx: Koa.Context, err: Error) {
+export function sendErrorResponse(ctx: Koa.Context, err: httpError) {
   ctx.body = JSON.stringify({
     error: {
       code: err.code,
@@ -21,6 +24,12 @@ export function sendErrorResponse(ctx: Koa.Context, err: Error) {
   ctx.status = err.status;
 }
 
+
+export function validateSchema(input: any, schema: any): boolean {
+  const validator = AJV.compile(schema);
+  const schemaValid = validator(input)
+  return schemaValid as boolean;
+}
 
 export function validateTokenOrSendError(ctx: Koa.Context): void {
   let popped = ctx.headers?.authorization?.split(" ")?.pop();

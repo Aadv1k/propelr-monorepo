@@ -1,40 +1,32 @@
 import Koa from 'koa';
 
 import { ERROR, JWT_SECRET } from '../common/const';
-import { sendErrorResponse, sendJSONResponse, md5 } from '../common/utils';
+import { sendErrorResponse, sendJSONResponse, md5, validateSchema } from '../common/utils';
 
 import * as common from '@propelr/common';
-import { User } from '../types/user';
+import { User } from '../types';
 import { USER_DB } from '../models/UserRepository';
+import userSchema from '../schemas/user';
 
 export default async function (ctx: Koa.Context): Promise<void> {
   if (ctx.method !== 'POST') {
     sendErrorResponse(ctx, ERROR.invalidMethod);
     return;
   }
-
   if (!ctx.is('json')) {
     sendErrorResponse(ctx, ERROR.invalidMime);
     return;
   }
-
   if (!ctx.request.body) {
     sendErrorResponse(ctx, ERROR.invalidJSON);
     return;
   }
-
-  const data = ctx.request.body as User;
-
-  if (
-    !common.validateSchema(data, {
-      email: 'string',
-      password: 'string',
-    })
-  ) {
+  if (!validateSchema(ctx.request.body, userSchema)) {
     sendErrorResponse(ctx, ERROR.badInput);
     return;
   }
 
+  const data = ctx.request.body as User;
   const foundUser = await USER_DB.getUserByEmail(data.email);
 
   if (!foundUser) {

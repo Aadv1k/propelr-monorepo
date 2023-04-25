@@ -1,24 +1,23 @@
 import Koa from 'koa';
+import * as draco from 'dracoql';
 
 import { ERROR, JWT_SECRET } from '../common/const';
 import * as utils from '../common/utils';
-
-import * as draco from "dracoql";
-
 import * as common from '@propelr/common';
-import { DBFlow } from '../types/userRepository';
+import { Flow } from '../types';
 import { USER_DB } from '../models/UserRepository';
+import flowSchema from "../schemas/flow";
 
-async function handleDelete(ctx: Koa.Context): Promise<void> {
-  let splitUrl = ctx.path.split('/')
-  let flowToDelete = splitUrl?.[splitUrl.findIndex(e => e === "flows") + 1]
+async function deleteFlow(ctx: Koa.Context): Promise<void> {
+  let splitUrl = ctx.path.split('/');
+  let flowToDelete = splitUrl?.[splitUrl.findIndex((e) => e === 'flows') + 1];
 
   if (!flowToDelete) {
     utils.sendErrorResponse(ctx, ERROR.badInput);
     return;
   }
 
-  const jwtString = ctx.headers?.["authorization"]?.split(" ").pop() ?? "";
+  const jwtString = ctx.headers?.['authorization']?.split(' ').pop() ?? '';
 
   if (!common.jwt.verify(jwtString, JWT_SECRET)) {
     utils.sendErrorResponse(ctx, ERROR.unauthorized);
@@ -37,12 +36,17 @@ async function handleDelete(ctx: Koa.Context): Promise<void> {
     return;
   }
 
-  utils.sendJSONResponse(ctx, { status: 204, }, 204);
+  utils.sendJSONResponse(ctx, {
+    message: "Successfully deleted flow",
+    data: {
+      id: flowToDelete,
+    },
+    status: 204
+  }, 204);
 }
 
-
-async function handlePost(ctx: Koa.Context): Promise<void> {
-  const jwtString = ctx.headers?.["authorization"]?.split(" ").pop() ?? "";
+async function createFlow(ctx: Koa.Context): Promise<void> {
+  const jwtString = ctx.headers?.['authorization']?.split(' ').pop() ?? '';
 
   if (!common.jwt.verify(jwtString, JWT_SECRET)) {
     utils.sendErrorResponse(ctx, ERROR.unauthorized);
@@ -51,7 +55,7 @@ async function handlePost(ctx: Koa.Context): Promise<void> {
 
   const parsedToken = common.jwt.parse(jwtString);
 
-  if (ctx.headers["content-type"] !== "application/json") {
+  if (ctx.headers['content-type'] !== 'application/json') {
     utils.sendErrorResponse(ctx, ERROR.invalidMime);
     return;
   }
@@ -61,36 +65,43 @@ async function handlePost(ctx: Koa.Context): Promise<void> {
     return;
   }
 
-  const data = ctx.request.body as DBFlow;
-
-  if (!data?.query) {
+  if (!utils.validateSchema(ctx.request.body, flowSchema)) {
     utils.sendErrorResponse(ctx, ERROR.badInput);
     return;
   }
 
+  const data = ctx.request.body as Flow;
+
   try {
-    await runDracoQueryAndGetVar(data.query, []);
+    await runDracoQueryAndGetVar(data.query.syntax, []);
   } catch (err: any) {
-    utils.sendJSONResponse(ctx, {
-      error: {
-        code: "invalid-draco-syntax",
-        message: `Syntax check failed with "${err.name}"`,
-        details: err.message
+    utils.sendJSONResponse(
+      ctx,
+      {
+        error: {
+          code: 'invalid-draco-syntax',
+          message: `Syntax check failed with "${err.name}"`,
+          details: err.message,
+        },
+        status: 400,
       },
-      status: 400,
-    }, 400);
+      400,
+    );
     return;
   }
 
-
-  const flow: DBFlow = {
+  const flow: Flow = {
     id: utils.generateId(8),
-    userid: parsedToken.id,
+    userid: parsedToken.id as string,
     query: data.query,
-    vars: data?.vars,
-  }
+    schedule: data.schedule,
+    receiver: data.receiver,
+    createdAt: Date.now(),
+  };
 
-  const pushedFlow = await USER_DB.pushFlow(flow);
+  console.log(flow);
+
+  const pushedFlow = await USER_DB.pushFlow(flow as Flow);
 
   if (!pushedFlow) {
     utils.sendErrorResponse(ctx, ERROR.internalError);
@@ -98,7 +109,7 @@ async function handlePost(ctx: Koa.Context): Promise<void> {
   }
 
   utils.sendJSONResponse(ctx, {
-    message: "Successfully added a flow",
+    message: 'Successfully added a flow',
     data: {
       id: flow.id,
     },
@@ -106,23 +117,26 @@ async function handlePost(ctx: Koa.Context): Promise<void> {
   });
 }
 
-function runDracoQueryAndGetVar(query: string, vars: Array<string>): Promise<Array<string>> | undefined {
+function runDracoQueryAndGetVar(
+  query: string,
+  vars: Array<string>,
+): Promise<Array<string>> | undefined {
   return new Promise(async (resolve, reject) => {
     try {
       const lexer = new draco.lexer(query);
       const parser = new draco.parser(lexer.lex());
       const interpreter = new draco.interpreter(parser.parse());
       await interpreter.run();
-      resolve(vars.map(e => interpreter.getVar(e)));
+      resolve(vars.map((e) => interpreter.getVar(e)));
     } catch (err) {
       reject(err);
     }
-  })
+  });
 }
 
-async function handleExecute(ctx: Koa.Context): Promise<void> {
-  let splitUrl = ctx.path.split('/')
-  let flowToExecute = splitUrl?.[splitUrl.findIndex(e => e === "execute") - 1]
+async function getFlowExecute(ctx: Koa.Context): Promise<void> {
+  let splitUrl = ctx.path.split('/');
+  let flowToExecute = splitUrl?.[splitUrl.findIndex((e) => e === 'execute') - 1];
 
   if (!flowToExecute) {
     utils.sendErrorResponse(ctx, ERROR.badInput);
@@ -138,14 +152,14 @@ async function handleExecute(ctx: Koa.Context): Promise<void> {
 
   let computedVars;
 
-  const start: any = new Date()
+  const start: any = new Date();
   try {
-    computedVars = await runDracoQueryAndGetVar(foundFlow.query, foundFlow.vars);
+    computedVars = await runDracoQueryAndGetVar(foundFlow.query.syntax, foundFlow.query.vars);
   } catch (err: any) {
     utils.sendJSONResponse(ctx, {
       name: err.name,
-      message: err.message
-    })
+      message: err.message,
+    });
     return;
   }
 
@@ -153,19 +167,18 @@ async function handleExecute(ctx: Koa.Context): Promise<void> {
   computedVars = computedVars as any;
   let ret: any = {};
   for (let i = 0; i < computedVars.length; i++) {
-    ret[foundFlow.vars[i]] = computedVars[i].value;
+    ret[foundFlow.query.vars[i]] = computedVars[i].value;
   }
-
 
   utils.sendJSONResponse(ctx, {
     data: ret,
     message: `Parsed query in ${end - start}ms`,
     status: 200,
-  })
+  });
 }
 
-async function handleGet(ctx: Koa.Context): Promise<void> {
-  const jwtString = ctx.headers?.["authorization"]?.split(" ").pop() ?? "";
+async function getFlow(ctx: Koa.Context): Promise<void> {
+  const jwtString = ctx.headers?.['authorization']?.split(' ').pop() ?? '';
 
   if (!common.jwt.verify(jwtString, JWT_SECRET)) {
     utils.sendErrorResponse(ctx, ERROR.unauthorized);
@@ -181,31 +194,38 @@ async function handleGet(ctx: Koa.Context): Promise<void> {
     return;
   }
 
-  const foundFlows = await USER_DB.getFlowsByUserId(foundUser.id);
+  const foundFlows = await USER_DB.getFlowsByUserId(foundUser?.id as string);
   if (!foundFlows) {
     utils.sendErrorResponse(ctx, ERROR.internalError);
     return;
   }
 
-  const returnFlows = foundFlows.map(e => {return {
-    id: e.id, 
-    query: e.query,
-    vars: e?.vars ?? null,
-  }});
+  const returnFlows = foundFlows.map((e) => {
+    return {
+      id: e.id,
+      query: e.query,
+      createdAt: e.createdAt,
+      schedule: e.schedule,
+      receiver: {
+        identity: e.receiver.identity 
+      }
+    };
+  });
 
-  utils.sendJSONResponse(ctx, {
-    message: "Success",
-    data: [
-      ...returnFlows
-    ],
-    status: 200,
-  }, 200)
+  utils.sendJSONResponse(
+    ctx,
+    {
+      message: 'Success',
+      data: [...returnFlows],
+      status: 200,
+    },
+    200,
+  );
 }
 
 export {
-  handleGet as handleFlowsGet,
-  handlePost as handleFlowsPost,
-  handleDelete as handleFlowsDelete,
-  handleExecute as handleFlowsExecute,
-
-}
+  getFlow,
+  createFlow,
+  deleteFlow,
+  getFlowExecute,
+};

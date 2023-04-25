@@ -1,4 +1,4 @@
-import { Errors } from '../types/const';
+import { httpErrors } from '../types';
 import dotenv from 'dotenv';
 
 dotenv.config({
@@ -40,7 +40,7 @@ export const OAuthSchemes = {
   [key: string]: string;
 };
 
-export const ERROR: Errors = {
+export const ERROR: httpErrors = {
   invalidMime: {
     code: 'invalid-MIME',
     message: 'Invalid MIME type',

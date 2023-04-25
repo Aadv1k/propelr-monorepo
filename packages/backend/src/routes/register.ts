@@ -7,18 +7,19 @@ import {
   sendJSONResponse,
   generateId,
   md5,
+  validateSchema,
 } from '../common/utils';
 import * as common from '@propelr/common';
-import { User } from '../types/user';
-import { DBUser } from '../types/userRepository';
+import { User } from '../types';
 import { USER_DB } from '../models/UserRepository';
+
+import userSchema from '../schemas/user';
 
 export default async function (ctx: Koa.Context): Promise<void> {
   if (ctx.method !== 'POST') {
     sendErrorResponse(ctx, ERROR.invalidMethod);
     return;
   }
-
   if (!ctx.is('json')) {
     sendErrorResponse(ctx, ERROR.invalidMime);
     return;
@@ -27,18 +28,12 @@ export default async function (ctx: Koa.Context): Promise<void> {
     sendErrorResponse(ctx, ERROR.invalidJSON);
     return;
   }
-
-  const data = ctx.request.body as User;
-
-  if (
-    !common.validateSchema(data, {
-      email: 'string',
-      password: 'string',
-    })
-  ) {
-    sendErrorResponse(ctx, ERROR.badRequest);
+  if (!validateSchema(ctx.request.body, userSchema)) {
+    sendErrorResponse(ctx, ERROR.badInput);
     return;
   }
+
+  const data = ctx.request.body as User;
 
   let isEmailValid;
   const emailExistsInBloomTable = invalidEmailBloomTable.exists(data.email);
@@ -64,13 +59,13 @@ export default async function (ctx: Koa.Context): Promise<void> {
     return;
   }
 
-  const user: DBUser = {
-    id: generateId(16),
+  const user: User = {
+    id: generateId(8),
     email: data.email,
     password: md5(data.password),
   };
 
-  const pushedUser: DBUser | null = await USER_DB.pushUser(user);
+  const pushedUser: User | null = await USER_DB.pushUser(user);
 
   if (!pushedUser) {
     sendErrorResponse(ctx, ERROR.internalError);

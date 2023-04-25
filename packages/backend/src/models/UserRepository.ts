@@ -1,11 +1,12 @@
 import { MongoClient } from 'mongodb';
-import { DBUser, DBFlow } from '../types/userRepository';
+import { User, Flow } from '../types';
 import { ATLAS } from '../common/const';
 
 export default class UserRepo {
   client: MongoClient;
   flows: any;
   users: any;
+  keys: any;
   db: any;
 
   constructor() {
@@ -15,6 +16,7 @@ export default class UserRepo {
     this.db = null;
     this.flows = null;
     this.users = null;
+    this.keys = null;
   }
 
   async init() {
@@ -23,12 +25,13 @@ export default class UserRepo {
       this.db = this.client.db('UserDB');
       this.flows = this.db.collection('flows');
       this.users = this.db.collection('users');
+      this.keys = this.db.collection('keys');
     } catch (err) {
       console.error(err);
     }
   }
 
-  async pushUser(user: DBUser): Promise<DBUser | null> {
+  async pushUser(user: User): Promise<User | null> {
     try {
       await this.users.insertOne(user);
       return user;
@@ -45,7 +48,7 @@ export default class UserRepo {
     }
   }
 
-  async getUserByEmail(email: string): Promise<DBUser | null> {
+  async getUserByEmail(email: string): Promise<User | null> {
     try {
       const user = await this.users.findOne({ email, })
       return user;
@@ -54,7 +57,7 @@ export default class UserRepo {
     }
   }
 
-  async getUsers(): Promise<Array<DBUser> | null> {
+  async getUsers(): Promise<Array<User> | null> {
     try {
       const user = await this.users.find({}).toArray();
       return user;
@@ -63,7 +66,7 @@ export default class UserRepo {
     }
   }
 
-  async pushFlow(flow: DBFlow): Promise<DBFlow | null> {
+  async pushFlow(flow: Flow): Promise<Flow | null> {
     try {
       const flw = await this.flows.insertOne(flow);
       return flw;
@@ -78,7 +81,7 @@ export default class UserRepo {
     return false;
   }
 
-  async getFlowById(flowid: string): Promise<DBFlow | null>  {
+  async getFlowById(flowid: string): Promise<Flow | null>  {
     try {
       const flw = await this.flows.findOne({ id: flowid });
       return flw;
@@ -110,7 +113,7 @@ export default class UserRepo {
     }
   }
 
-  async getFlowsByUserId(userId: string): Promise<Array<DBFlow> | null> {
+  async getFlowsByUserId(userId: string): Promise<Array<Flow> | null> {
     try {
       const flows = await this.flows.find({ userid: userId }).toArray();
       return flows;

@@ -7,8 +7,7 @@ import { Strategy as MicrosoftStategy } from 'passport-microsoft';
 import { GOOGLE_AUTH, MS_AUTH, OAuthSchemes, ERROR, JWT_SECRET } from '../common/const';
 import { sendErrorResponse, generateId, sendJSONResponse } from '../common/utils';
 
-import { User } from '../types/user';
-import { DBUser } from '../types/userRepository';
+import { User } from '../types';
 import UserRepo from '../models/UserRepository';
 import * as common from '@propelr/common';
 
@@ -120,7 +119,7 @@ export async function routeOAuthCallback(ctx: Koa.Context, next: Koa.Next): Prom
     return;
   }
 
-  const userToPush: DBUser = {
+  const userToPush: User = {
     id: generateId(16),
     email: user?.email ?? user?.userPrincipalName,
     password: generateId(16), // TODO: find a better way to generate password
