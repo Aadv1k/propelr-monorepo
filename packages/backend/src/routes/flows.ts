@@ -99,8 +99,6 @@ async function createFlow(ctx: Koa.Context): Promise<void> {
     createdAt: Date.now(),
   };
 
-  console.log(flow);
-
   const pushedFlow = await USER_DB.pushFlow(flow as Flow);
 
   if (!pushedFlow) {

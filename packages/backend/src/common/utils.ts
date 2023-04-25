@@ -28,6 +28,7 @@ export function sendErrorResponse(ctx: Koa.Context, err: httpError) {
 export function validateSchema(input: any, schema: any): boolean {
   const validator = AJV.compile(schema);
   const schemaValid = validator(input)
+  console.log(validator.errors);
   return schemaValid as boolean;
 }
 

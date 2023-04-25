@@ -14,6 +14,7 @@ import { USER_DB } from './models/UserRepository';
 import {
   getFlow,
   deleteFlow,
+  createFlow,
   getFlowExecute
 } from './routes/flows';
 
@@ -54,7 +55,7 @@ app.use(async (ctx: Koa.Context, next) => {
   } else if (ctx.url.match(ROUTES['/api/flows']) && ctx.method === 'GET') {
     await getFlow(ctx);
   } else if (ctx.url.match(ROUTES['/api/flows']) && ctx.method === 'POST') {
-    //await createFlow(ctx);
+    await createFlow(ctx);
   } else if (ctx.url.match(ROUTES['/api/flows']) && ctx.method === 'DELETE') {
     await deleteFlow(ctx);
   } else if (ctx.url.match(ROUTES['/api/flows/:id/execute']) && ctx.method === 'GET') {

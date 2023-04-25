@@ -10,8 +10,6 @@ export default {
       },
       required: ['syntax', 'vars'],
     },
-    runAt: { anyOf: [{ type: 'string', format: 'date-time' }, { type: 'number' }] },
-    createdAt: { type: 'number' },
     schedule: {
       type: 'object',
       properties: {
@@ -35,5 +33,5 @@ export default {
       required: ['identity', 'address'],
     },
   },
-  required: ['id', 'query', 'runAt', 'createdAt', 'schedule', 'receiver'],
+  required: ['query', 'schedule', 'receiver'],
 };
