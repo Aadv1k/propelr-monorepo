@@ -28,7 +28,6 @@ async function getFlowStop(ctx: Koa.Context): Promise<void> {
   let flowToStop = splitUrl?.[splitUrl.findIndex((e) => e === 'flows') + 1];
 
   const jwtString = ctx.headers?.['authorization']?.split(' ').pop() ?? '';
-  let parsedToken = common.jwt.parse(jwtString);
 
   const apiKey = ctx.headers?.['x-api-key'];
   const hasValidKey = await hasValidApiKey(ctx)
@@ -41,6 +40,7 @@ async function getFlowStop(ctx: Koa.Context): Promise<void> {
     return;
   }
 
+  let parsedToken;
   if (hasValidKey) {
     if (!await hasKeyPermission(apiKey as string, KeyPerms.stop)) {
       utils.sendErrorResponse(ctx, ERROR.forbidden);
@@ -48,7 +48,10 @@ async function getFlowStop(ctx: Koa.Context): Promise<void> {
     }
     const key = (await USER_DB.getKey(apiKey as string)) as Key;
     parsedToken = { id: key.userid };
+  } else {
+    parsedToken = common.jwt.parse(jwtString);
   }
+  
 
   if (!flowToStop) {
     utils.sendErrorResponse(ctx, ERROR.badInput);
@@ -88,8 +91,6 @@ async function getFlowStart(ctx: Koa.Context): Promise<void> {
   let flowToStart = splitUrl?.[splitUrl.findIndex((e) => e === 'flows') + 1];
 
   const jwtString = ctx.headers?.['authorization']?.split(' ').pop() ?? '';
-  let parsedToken = common.jwt.parse(jwtString);
-
   const apiKey = ctx.headers?.['x-api-key'];
   const hasValidKey = await hasValidApiKey(ctx)
 
@@ -101,6 +102,8 @@ async function getFlowStart(ctx: Koa.Context): Promise<void> {
     return;
   }
 
+
+  let parsedToken;
   if (hasValidKey) {
     if (!await hasKeyPermission(apiKey as string, KeyPerms.start)) {
       utils.sendErrorResponse(ctx, ERROR.forbidden);
@@ -108,6 +111,8 @@ async function getFlowStart(ctx: Koa.Context): Promise<void> {
     }
     const key = (await USER_DB.getKey(apiKey as string)) as Key;
     parsedToken = { id: key.userid };
+  } else {
+    parsedToken = common.jwt.parse(jwtString);
   }
 
   if (!flowToStart) {
@@ -146,7 +151,6 @@ async function getFlowStart(ctx: Koa.Context): Promise<void> {
 
 async function deleteFlow(ctx: Koa.Context): Promise<void> {
   const jwtString = ctx.headers?.['authorization']?.split(' ').pop() ?? '';
-  let parsedToken = common.jwt.parse(jwtString);
 
   const apiKey = ctx.headers?.['x-api-key'];
   const hasValidKey = await hasValidApiKey(ctx)
@@ -159,6 +163,7 @@ async function deleteFlow(ctx: Koa.Context): Promise<void> {
     return;
   }
 
+  let parsedToken;
   if (hasValidKey) {
     if (!await hasKeyPermission(apiKey as string, KeyPerms.delete)) {
       utils.sendErrorResponse(ctx, ERROR.forbidden);
@@ -166,6 +171,8 @@ async function deleteFlow(ctx: Koa.Context): Promise<void> {
     }
     const key = (await USER_DB.getKey(apiKey as string)) as Key;
     parsedToken = { id: key.userid };
+  } else {
+    parsedToken = common.jwt.parse(jwtString);
   }
 
 
@@ -182,13 +189,14 @@ async function deleteFlow(ctx: Koa.Context): Promise<void> {
     utils.sendErrorResponse(ctx, ERROR.flowNotFound);
     return;
   }
-  const deletedFlow = await USER_DB.deleteFlowByUserId(parsedToken.id, flowToDelete);
+
+  const deletedFlow = await USER_DB.deleteFlowByUserId(flowToDelete, parsedToken.id);
 
   if (!deletedFlow) {
     utils.sendErrorResponse(ctx, ERROR.internalError);
     return;
   }
-
+  
   utils.sendJSONResponse(ctx, {
     message: "Successfully deleted flow",
     data: {
@@ -196,6 +204,7 @@ async function deleteFlow(ctx: Koa.Context): Promise<void> {
     },
     status: 204
   }, 204);
+
 }
 
 async function createFlow(ctx: Koa.Context): Promise<void> {

@@ -76,7 +76,7 @@ app.use(async (ctx: Koa.Context, next) => {
     await getFlow(ctx);
   } else if (ctx.url.match(ROUTES['/api/flows']) && ctx.method === 'POST') {
     await createFlow(ctx);
-  } else if (ctx.url.match(ROUTES['/api/flows']) && ctx.method === 'DELETE') {
+  } else if (ctx.url.match(ROUTES['/api/flows/:id']) && ctx.method === 'DELETE') {
     await deleteFlow(ctx);
   } else if (ctx.url.match(ROUTES['/api/flows/:id/execute']) && ctx.method === 'GET') {
     await getFlowExecute(ctx);
