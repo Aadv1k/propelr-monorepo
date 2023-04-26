@@ -311,6 +311,30 @@ async function getFlowExecute(ctx: Koa.Context): Promise<void> {
   let splitUrl = ctx.path.split('/');
   let flowToExecute = splitUrl?.[splitUrl.findIndex((e) => e === 'execute') - 1];
 
+  const jwtString = ctx.headers?.['authorization']?.split(' ').pop() ?? '';
+  let parsedToken = common.jwt.parse(jwtString);
+
+  const apiKey = ctx.headers?.['x-api-key'];
+  const hasValidKey = await hasValidApiKey(ctx)
+
+  if (
+    !common.jwt.verify(jwtString, JWT_SECRET) && 
+    !hasValidKey
+  ) {
+    utils.sendErrorResponse(ctx, ERROR.unauthorized);
+    return;
+  }
+
+  if (hasValidKey) {
+    if (!await hasKeyPermission(apiKey as string, KeyPerms.execute)) {
+      utils.sendErrorResponse(ctx, ERROR.forbidden);
+      return;
+    }
+    const key = (await USER_DB.getKey(apiKey as string)) as Key;
+    parsedToken = { id: key.userid };
+  }
+
+
   if (!flowToExecute) {
     utils.sendErrorResponse(ctx, ERROR.badInput);
     return;
