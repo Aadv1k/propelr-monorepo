@@ -54,9 +54,9 @@ async function createKey(ctx: Koa.Context): Promise<void> {
   utils.sendJSONResponse(ctx, {
     message: 'Successfully registered a key',
     data: {
-      key: pushedKey.key,
-      expires: pushedKey.expires,
-      permissions: pushedKey.permissions,
+      key: key.key,
+      expires: key.expires,
+      permissions: key.permissions,
     },
     status: 201,
   });

@@ -110,8 +110,6 @@ async function getFlowStart(ctx: Koa.Context): Promise<void> {
     parsedToken = { id: key.userid };
   }
 
-
-
   if (!flowToStart) {
     utils.sendErrorResponse(ctx, ERROR.badInput);
     return;
@@ -202,7 +200,6 @@ async function deleteFlow(ctx: Koa.Context): Promise<void> {
 
 async function createFlow(ctx: Koa.Context): Promise<void> {
   const jwtString = ctx.headers?.['authorization']?.split(' ').pop() ?? '';
-  let parsedToken = common.jwt.parse(jwtString);
 
   const apiKey = ctx.headers?.['x-api-key'];
   const hasValidKey = await hasValidApiKey(ctx)
@@ -215,6 +212,7 @@ async function createFlow(ctx: Koa.Context): Promise<void> {
     return;
   }
 
+  let parsedToken ;
   if (hasValidKey) {
     const key = (await USER_DB.getKey(apiKey as string)) as Key;
     parsedToken = { id: key.userid };
@@ -222,6 +220,8 @@ async function createFlow(ctx: Koa.Context): Promise<void> {
       utils.sendErrorResponse(ctx, ERROR.forbidden);
       return;
     }
+  } else {
+    parsedToken = common.jwt.parse(jwtString);
   }
 
 
@@ -312,7 +312,7 @@ async function getFlowExecute(ctx: Koa.Context): Promise<void> {
   let flowToExecute = splitUrl?.[splitUrl.findIndex((e) => e === 'execute') - 1];
 
   const jwtString = ctx.headers?.['authorization']?.split(' ').pop() ?? '';
-  let parsedToken = common.jwt.parse(jwtString);
+  let parsedToken;
 
   const apiKey = ctx.headers?.['x-api-key'];
   const hasValidKey = await hasValidApiKey(ctx)
@@ -332,6 +332,8 @@ async function getFlowExecute(ctx: Koa.Context): Promise<void> {
     }
     const key = (await USER_DB.getKey(apiKey as string)) as Key;
     parsedToken = { id: key.userid };
+  } else {
+    parsedToken = common.jwt.parse(jwtString);
   }
 
 
@@ -375,16 +377,33 @@ async function getFlowExecute(ctx: Koa.Context): Promise<void> {
 }
 
 async function getFlow(ctx: Koa.Context): Promise<void> {
-  const jwtString = ctx.headers?.['authorization']?.split(' ').pop() ?? '';
+  const jwtString = ctx.headers?.['authorization']?.split(' ').pop() ?? "";
 
-  if (!common.jwt.verify(jwtString, JWT_SECRET)) {
+  const apiKey = ctx.headers?.['x-api-key'];
+  const hasValidKey = await hasValidApiKey(ctx)
+
+  if (
+    !common.jwt.verify(jwtString, JWT_SECRET) && 
+    !hasValidKey
+  ) {
     utils.sendErrorResponse(ctx, ERROR.unauthorized);
     return;
   }
 
-  const parsedToken = common.jwt.parse(jwtString);
+  let parsedToken 
 
-  const foundUser = await USER_DB.getUserByEmail(parsedToken.email);
+  if (hasValidKey) {
+    if (!await hasKeyPermission(apiKey as string, KeyPerms.read)) {
+      utils.sendErrorResponse(ctx, ERROR.forbidden);
+      return;
+    }
+    const key = (await USER_DB.getKey(apiKey as string)) as Key;
+    parsedToken = { id: key.userid };
+  } else {
+    parsedToken = common.jwt.parse(jwtString);
+  }
+
+  const foundUser = await USER_DB.getUserById(parsedToken.id);
 
   if (!foundUser) {
     utils.sendErrorResponse(ctx, ERROR.userNotFound);

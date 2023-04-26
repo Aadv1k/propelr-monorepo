@@ -5,7 +5,7 @@ export default {
       type: 'array',
       items: {
         type: 'string',
-        enum: ['read', 'write'],
+        enum: ['read', 'write', 'execute', 'start', 'stop', 'delete'],
       },
     },
     expires: {
@@ -13,5 +13,5 @@ export default {
       format: 'date-time',
     },
   },
-  required: ['permissions', 'expires'],
+  required: ["permissions"],
 };

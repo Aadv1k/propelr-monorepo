@@ -48,6 +48,16 @@ export default class UserRepo {
     }
   }
 
+  async getUserById(id: string): Promise<User | null> {
+    try {
+      const user = await this.users.findOne({ id });
+      return user;
+    } catch (err) {
+      return null;
+    }
+  }
+
+
   async getUserByEmail(email: string): Promise<User | null> {
     try {
       const user = await this.users.findOne({ email });
@@ -94,7 +104,7 @@ export default class UserRepo {
 
   async deleteKeyByUserId(userid: string, key: string): Promise<any> {
     try {
-      const deleted = await this.flows.deleteOne({ userid, key });
+      const deleted = await this.keys.deleteOne({ userid, key });
       if (deleted.deletedCount === 0) {
         return null;
       }
@@ -108,7 +118,7 @@ export default class UserRepo {
 
   async getKeyByUserId(userid: string): Promise<Key | null> {
     try {
-      const key = await this.flows.findOne({ userid: userid });
+      const key = await this.keys.findOne({ userid: userid });
       return key;
     } catch (err) {
       return null;
@@ -117,7 +127,7 @@ export default class UserRepo {
 
   async getKeysByUserId(userid: string): Promise<Array<Key> | null> {
     try {
-      const key = await this.flows.find({ userid: userid }).toArray();
+      const key = await this.keys.find({ userid: userid }).toArray();
       return key;
     } catch (err) {
       return null;
@@ -126,7 +136,7 @@ export default class UserRepo {
 
   async getKey(key: string): Promise<Key | null> {
     try {
-      const found = await this.flows.findOne({ key });
+      const found = await this.keys.findOne({ key: key });
       return found;
     } catch (err) {
       return null;
