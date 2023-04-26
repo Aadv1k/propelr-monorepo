@@ -1,5 +1,5 @@
 import { MongoClient } from 'mongodb';
-import { User, Flow } from '../types';
+import { User, Flow, Key } from '../types';
 import { ATLAS } from '../common/const';
 
 export default class UserRepo {
@@ -41,7 +41,7 @@ export default class UserRepo {
   }
   async deleteUserByEmail(email: string): Promise<boolean | null> {
     try {
-      await this.users.deleteOne({ email, })
+      await this.users.deleteOne({ email });
       return true;
     } catch (err) {
       return null;
@@ -50,7 +50,7 @@ export default class UserRepo {
 
   async getUserByEmail(email: string): Promise<User | null> {
     try {
-      const user = await this.users.findOne({ email, })
+      const user = await this.users.findOne({ email });
       return user;
     } catch (err) {
       return null;
@@ -68,14 +68,67 @@ export default class UserRepo {
 
   async updateFlowFieldById(id: string, obj: any): Promise<string | null> {
     try {
-      let result = await this.flows.updateOne({
-        id,
-      }, {
-        $set: obj
-      })
+      let result = await this.flows.updateOne(
+        {
+          id,
+        },
+        {
+          $set: obj,
+        },
+      );
       if (result.ok) return id;
       return null;
     } catch {
+      return null;
+    }
+  }
+
+  async pushKey(key: Key): Promise<Key | null> {
+    try {
+      const k = await this.keys.insertOne(key);
+      return k;
+    } catch (err) {
+      return null;
+    }
+  }
+
+  async deleteKeyByUserId(userid: string, key: string): Promise<any> {
+    try {
+      const deleted = await this.flows.deleteOne({ userid, key });
+      if (deleted.deletedCount === 0) {
+        return null;
+      }
+      return {
+        key,
+      };
+    } catch (err) {
+      return null;
+    }
+  }
+
+  async getKeyByUserId(userid: string): Promise<Key | null> {
+    try {
+      const key = await this.flows.findOne({ userid: userid });
+      return key;
+    } catch (err) {
+      return null;
+    }
+  }
+
+  async getKeysByUserId(userid: string): Promise<Array<Key> | null> {
+    try {
+      const key = await this.flows.find({ userid: userid }).toArray();
+      return key;
+    } catch (err) {
+      return null;
+    }
+  }
+
+  async getKey(key: string): Promise<Key | null> {
+    try {
+      const found = await this.flows.findOne({ key });
+      return found;
+    } catch (err) {
       return null;
     }
   }
@@ -95,7 +148,7 @@ export default class UserRepo {
     return false;
   }
 
-  async getFlowById(flowid: string): Promise<Flow | null>  {
+  async getFlowById(flowid: string): Promise<Flow | null> {
     try {
       const flw = await this.flows.findOne({ id: flowid });
       return flw;
@@ -104,24 +157,15 @@ export default class UserRepo {
     }
   }
 
-  async deleteFlowById(flowid: string): Promise<any | null> {
+  async deleteFlowByUserId(flowid: string, userid: string): Promise<any | null> {
     try {
-      const deleted = await this.flows.deleteOne({ id: flowid })
+      const deleted = await this.flows.deleteOne({ id: flowid, userid, });
       if (deleted.deletedCount === 0) {
         return null;
-      } 
-      return { 
-        id: flowid
+      }
+      return {
+        id: flowid,
       };
-    } catch (err) {
-      return null;
-    }
-  }
-
-  async deleteFlowByUserId(userId: string): Promise<boolean | null> {
-    try {
-      await this.users.deleteOne({ userid: userId })
-      return true;
     } catch (err) {
       return null;
     }
@@ -146,4 +190,5 @@ export default class UserRepo {
   }
 }
 
+// Sharing the same instance
 export const USER_DB = new UserRepo();

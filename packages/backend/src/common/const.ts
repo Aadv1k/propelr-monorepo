@@ -56,11 +56,10 @@ export const ERROR: httpErrors = {
     status: 400,
   },
 
-
   flowAlreadyRunning: {
     code: 'flow-already-running',
     message: 'The flow is already running',
-    details: 'the flow that you are trying to stop is already running',
+    details: 'the flow that you are trying to run is already running',
     status: 400,
   },
 
@@ -74,8 +73,15 @@ export const ERROR: httpErrors = {
   unauthorized: {
     code: 'unauthorized',
     message: 'Unauthorized',
-    details: 'You do not have the necessary permissions to access this resource',
+    details: 'Authentication is required to access the requested resource',
     status: 401,
+  },
+
+  forbidden: {
+    code: 'forbidden',
+    message: 'Forbidden',
+    details: 'Access to the requested resource is forbidden',
+    status: 403,
   },
 
   userNotFound: {

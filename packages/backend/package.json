@@ -10,9 +10,7 @@
   "author": "Aadvik<aadv1k@outlook.com>",
   "license": "MIT",
   "dependencies": {
-    "@types/ajv": "^1.0.0",
     "ajv": "^8.12.0",
-    "backend": "^0.0.0",
     "dotenv": "^16.0.3",
     "dracoql": "^0.3.0",
     "koa": "^2.14.2",
@@ -24,6 +22,7 @@
     "passport-microsoft": "^1.0.0"
   },
   "devDependencies": {
+    "@types/ajv": "^1.0.0",
     "@types/koa": "^2.13.6",
     "@types/koa-bodyparser": "^4.3.10",
     "@types/koa-passport": "^6.0.0",

@@ -15,6 +15,23 @@ export interface User {
   password: string;
 }
 
+export enum KeyPerms {
+  read = "read",
+  delete = "delete",
+  create = "create",
+  execute = "execute",
+  start = "start",
+  stop = "stop"
+}
+
+export interface Key {
+  key: string, 
+  permissions: Array<KeyPerms>
+  userid: string,
+  expires: string,
+  createdAt: string,
+}
+
 export enum Recipients {
   whatsapp = 'whatsapp',
   email = 'email',

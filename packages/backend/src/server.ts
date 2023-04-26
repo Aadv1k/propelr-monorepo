@@ -7,6 +7,8 @@ import { routeOAuth, routeOAuthCallback } from './routes/oauth';
 import routeRegister from './routes/register';
 import routeLogin from './routes/login';
 
+import { createKey } from "./routes/key";
+
 import { routeUsersGet, routeUsersDelete } from './routes/users';
 
 import { Flow, FlowState } from "./types";
@@ -45,6 +47,7 @@ const ROUTES = {
   "/api/flows/:id/execute": /^\/api\/flows\/[a-zA-Z0-9_-]+\/execute\/?$/,
   "/api/flows/:id/start": /^\/api\/flows\/[a-zA-Z0-9_-]+\/start\/?$/,
   "/api/flows/:id/stop": /^\/api\/flows\/[a-zA-Z0-9_-]+\/stop\/?$/,
+  "/api/developers/keys": /^\/api\/developers\/keys\/?$/,
 };
 
 app.use(passport.initialize());
@@ -91,6 +94,8 @@ app.use(async (ctx: Koa.Context, next) => {
     await routeUsersDelete(ctx);
   } else if (ctx.url.match(ROUTES['/api/oauth/callback']) && ctx.method === 'GET') {
     await routeOAuthCallback(ctx, next);
+  } else if (ctx.url.match(ROUTES['/api/developers/keys']) && ctx.method === "POST") {
+    await createKey(ctx);
   } else {
     utils.sendErrorResponse(ctx, ERROR.notFound);
   } 
