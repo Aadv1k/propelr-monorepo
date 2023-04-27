@@ -39,6 +39,7 @@ export function parse(token: string): any {
 }
 
 export function verify(token: string, secret: string): boolean {
+  try {
     const split = token.split('.');
 
     if (split.length !== 3) return false;
@@ -54,6 +55,9 @@ export function verify(token: string, secret: string): boolean {
     if (decoded !== tail) return false;
 
     return true;
+  } catch {
+    return false
+  }
 }
 
 
