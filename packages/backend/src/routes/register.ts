@@ -20,7 +20,7 @@ export default async function (ctx: Koa.Context): Promise<void> {
     sendErrorResponse(ctx, ERROR.invalidMethod);
     return;
   }
-  if (!ctx.is('json')) {
+  if (ctx.headers?.['content-type'] !== "application/json") {
     sendErrorResponse(ctx, ERROR.invalidMime);
     return;
   }

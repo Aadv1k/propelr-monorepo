@@ -58,6 +58,7 @@ app.use(async (ctx: Koa.Context, next) => {
 
   flows.forEach((flow: Flow) => {
     FLOW_RUNNER.register(flow, (f: any) => {
+      if (flow.schedule.type === "none") return;
       console.log(`should run: ${f.query.syntax}`);
     })
     if (flow.status === FlowState.RUNNING) {

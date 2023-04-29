@@ -132,7 +132,9 @@ async function getFlowStart(ctx: Koa.Context): Promise<void> {
   }
 
   try {
-    FLOW_RUNNER.startFlowById(flowToStart);
+    if (foundFlow.schedule.type !== "none") {
+      FLOW_RUNNER.startFlowById(flowToStart);
+    }
   } catch (err) {
     utils.sendErrorResponse(ctx, ERROR.internalError) // TODO: it is not a registered job
     return;
@@ -204,7 +206,6 @@ async function deleteFlow(ctx: Koa.Context): Promise<void> {
     },
     status: 204
   }, 204);
-
 }
 
 async function createFlow(ctx: Koa.Context): Promise<void> {
@@ -252,7 +253,8 @@ async function createFlow(ctx: Koa.Context): Promise<void> {
   const data = ctx.request.body as Flow;
 
   try {
-    await runDracoQueryAndGetVar(data.query.syntax, []);
+    const d = await runDracoQueryAndGetVar(data.query.syntax, data.query.vars);
+    console.log(d);
   } catch (err: any) {
     utils.sendJSONResponse(
       ctx,
@@ -279,9 +281,11 @@ async function createFlow(ctx: Koa.Context): Promise<void> {
     createdAt: Date.now(),
   };
 
-  FLOW_RUNNER.register(flow, (f: Flow) => {
-    console.log(f.id); // TODO: change this
-  })
+  if (flow.schedule.type !== "none") {
+    FLOW_RUNNER.register(flow, (f: Flow) => {
+      console.log(f.id); 
+    })
+  } 
 
   const pushedFlow = await USER_DB.pushFlow(flow as Flow);
 
@@ -307,7 +311,9 @@ function runDracoQueryAndGetVar(
     try {
       const lexer = new draco.lexer(query);
       const parser = new draco.parser(lexer.lex());
-      const interpreter = new draco.interpreter(parser.parse());
+      const AST = JSON.parse(JSON.stringify(parser.parse()));
+      console.log(JSON.stringify(parser.parse()));
+      const interpreter = new draco.interpreter(AST);
       await interpreter.run();
       resolve(vars.map((e) => interpreter.getVar(e)));
     } catch (err) {

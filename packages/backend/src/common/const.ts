@@ -6,7 +6,7 @@ dotenv.config({
   path: path.resolve(__dirname, "../../../.env"),
 });
 
-export const PORT = 3000;
+export const PORT = process.env.PORT || 4000;
 
 export const isProd = process.env?.NODE_ENV === 'production' ? true : false;
 

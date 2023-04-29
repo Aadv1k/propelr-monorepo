@@ -12,7 +12,7 @@ export default {
     schedule: {
       type: 'object',
       properties: {
-        type: { type: 'string', enum: ['daily', 'weekly', 'monthly'] },
+        type: { type: 'string', enum: ['daily', 'weekly', 'monthly', 'none'] },
         time: { type: 'string' },
         dayOfWeek: { type: 'integer', minimum: 1, maximum: 7 },
         dayOfMonth: { type: 'integer', minimum: 1, maximum: 31 },
@@ -37,6 +37,13 @@ export default {
           },
           required: ['type', 'dayOfMonth'],
         },
+        {
+          properties: {
+            type: { const: 'none' },
+          },
+          required: ['type'],
+        },
+
       ],
     },
     receiver: {

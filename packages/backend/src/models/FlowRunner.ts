@@ -11,7 +11,12 @@ export default class FlowRunner {
   }
 
   register(flow: Flow, cb: any) {
-    this.flows[flow.id] = cron.schedule(FlowRunner.generateCronFromSchedule(flow.schedule), () => cb(flow), {
+    const cronStr = FlowRunner.generateCronFromSchedule(flow.schedule)
+    if (!cronStr) {
+      return;
+    }
+
+    this.flows[flow.id] = cron.schedule(cronStr as string, () => cb(flow), {
       scheduled: false
     });
   }
@@ -30,7 +35,7 @@ export default class FlowRunner {
     this.flows[id].start();
   }
   
-  public static generateCronFromSchedule(sch: Schedule): string {
+  public static generateCronFromSchedule(sch: Schedule): string  | null{
     const { type, dayOfWeek, dayOfMonth, time } = sch;
     const [hour, minute] = time.split(':');
 
@@ -44,7 +49,7 @@ export default class FlowRunner {
       case 'monthly':
         return `${minute} ${hour} ${dayOfMonth} * ${dayOfWeek ?? "*"}`;
       default:
-        throw new Error(`Invalid schedule type: ${type}`);
+        return null;
     }
   }
 }
