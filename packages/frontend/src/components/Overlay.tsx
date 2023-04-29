@@ -1,106 +1,76 @@
 import { Heading, useMediaQuery, Text, Flex, Button}  from "@chakra-ui/react";
 import * as chakra from "@chakra-ui/react";
 
-import imgWsj800 from "../assets/wsj-800.png";
-import imgGmail800 from "../assets/gmail-800.png";
-import imgNse800 from "../assets/nseindia-800.png"
-import imgWhatsapp from "../assets/whatsapp.png"
+import "bootstrap-icons/font/bootstrap-icons.css";
 
-import imgUpArrow from "../assets/up-arrow.png";
 import React from "react";
 
-const data = [
-  {
-    title1: "wsj.com",
-    src1: imgWsj800,
-    title2: "gmail",
-    src2: imgGmail800
-  },
+export default function Overlay({ width, imageSet, ms, titleSet}: {
+  width: string,
+  imageSet: Array<string>,
+  titleSet: Array<string>,
+  ms?: number
+}) {
 
-  {
-    title1: "nseindia.com",
-    src1: imgNse800,
-    title2: "whatsapp",
-    src2: imgWhatsapp  
-  },
-
-]
-
-export default function Overlay() {
-  const [imageIndex, setImageIndex] = React.useState(0);
+  const [imgIndex, setIndex] = React.useState(0);
 
   React.useEffect(() => {
     const interval = setInterval(() => {
-      setImageIndex((prevIndex) => (prevIndex + 1) % data.length);
-    }, 5000);
+      setIndex((prevIndex) => (prevIndex + 1) % imageSet.length);
+    }, ms ?? 5000);
+
 
     return () => clearInterval(interval);
   }, []);
 
+
   return (
-    <chakra.Box 
-      display="flex" p={4} 
-      alignItems="center" justifyContent="center" 
-      flexDirection={{base: "column",  md: "row"}}
-      gap={6}
-      w="100%"
-      maxW={1200}
-      mx="auto"
-    >
-      <chakra.Box w={{base: "100%", md: "50%"}} position="relative" display="flex" gap={4}> 
-        <chakra.Box w="full" sx={{ transform: "translate(-50%, -50%)", left: "50%" , zIndex: 10}} position="absolute" shadow="md" py={.5} bg="gray.200">
-          <Text fontFamily="monospace" fontSize="sm" rounded="full">
-            {data[imageIndex].title1}
-          </Text>
-        </chakra.Box>
-
-        <chakra.Box sx={{ position: "relative", width: "100%", height: "500px", overflow: "hidden"}}>
-          {data.map((image, i) => (
-            <chakra.Image
-              key={i}
-              src={image.src1}
-              alt={`Slide ${i}`}
-              boxSize="100%"
-              objectFit="cover"
-              position="absolute"
-              top="0"
-              left={`${100 * (i - imageIndex)}%`}
-              transition="left 0.5s ease-in-out"
-            />
-          ))}
-        </chakra.Box>
-
-      </chakra.Box>
+    <chakra.Box w={width as string} maxW={800} bg="blue.200" rounded="md" shadow="lg" sx={{
+      aspectRatio: "16/9",
+      position: "relative",
+        overflow: "hidden",
+    }}>
 
 
-      <chakra.Box w="30%" maxW={20} transform={{base: "rotate(180deg)", md: "rotate(90deg)"}}>
-          <img src={imgUpArrow} alt="" />
-        </chakra.Box>
+      {imageSet.map((image: string, i: number) => (
+        <chakra.Image
+          key={i}
+          src={image}
+          alt={`Slide ${i}`}
+          boxSize="100%"
+          objectFit="cover"
+          position="absolute"
+          left="0"
+          top={`${100 * (i - imgIndex)}%`}
+          transition="top 0.5s cubic-bezier(0.25, 0.1, 0.25, 1) 0s"
+        />
+
+      ))}
 
 
-      <chakra.Box w={{base: "100%", md: "50%"}} position="relative" display="flex" gap={4}> 
-        <chakra.Box w="full" sx={{ transform: "translate(-50%, -50%)", left: "50%", zIndex: 2}} position="absolute" shadow="md" py={.5} bg="gray.200">
-          <Text fontFamily="monospace" fontSize="sm" rounded="full">
-            {data[imageIndex].title2}
-          </Text>
-        </chakra.Box>
+      <chakra.Flex 
+        position="absolute" 
+        h={{base: 6, md: 8}} w="100%" 
+        bg="#d9dddc"
+        inset="0"
+        alignItems="center"
+        shadow="md"
+        justifyContent="space-evenly"
+      >
 
-        <chakra.Box sx={{ position: "relative", width: "100%",  height: "500px", overflow: "hidden"}}>
-          {data.map((image, i) => (
-            <chakra.Image
-              key={i}
-              src={image.src2}
-              alt={`Slide ${i}`}
-              boxSize="100%"
-              objectFit="cover"
-              position="absolute"
-              top="0"
-              left={`${100 * (i - imageIndex)}%`}
-              transition="left 0.5s ease-in-out"
-            />
-          ))}
-        </chakra.Box>
-      </chakra.Box>
+        <chakra.Flex  sx={{border: "1px solid black", aspectRatio: "1"}} h="100%" alignItems="center" justifyContent="center">
+          <i className="bi bi-lock" style={{fontSize: "1rem"}}></i>
+        </chakra.Flex>
+
+        <chakra.Flex flex="100%" textAlign="left" px={2} sx={{borderBlock: "1px solid black"}} h="100%" alignItems="center">
+          {titleSet[imgIndex]}
+        </chakra.Flex>
+
+        <chakra.Flex sx={{border: "1px solid black", aspectRatio: "1"}} h="100%" alignItems="center" justifyContent="center">
+          <i className="bi bi-search" style={{fontSize: ".9rem"}}></i>
+        </chakra.Flex>
+
+      </chakra.Flex>
 
     </chakra.Box>
   )
