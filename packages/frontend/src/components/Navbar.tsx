@@ -18,6 +18,7 @@ import { HamburgerIcon } from '@chakra-ui/icons'
 function NavDrawer() {
   const { isOpen, onOpen, onClose } = useDisclosure()
 
+
   return (
     <>
       <Button variant="ghost" onClick={onOpen} rounded={4} size="md">
@@ -30,7 +31,7 @@ function NavDrawer() {
           <DrawerCloseButton />
           <DrawerBody>
           <Flex as="ul" align="start" direction="column" gap={4}>
-            <Link color="blue.200" fontFamily="heading" fontWeight={700}>Products</Link>
+            <Link href="#pricing" color="blue.200" fontFamily="heading" fontWeight={700}>Products</Link>
             <Link color="blue.200" fontFamily="heading" fontWeight={700}>Pricing</Link>
             <Link color="blue.200" fontFamily="heading" fontWeight={700}>Developers</Link>
           </Flex>
@@ -68,9 +69,9 @@ export default function Navbar() {
       {isDesktop ? <NavDrawer /> : 
 
       <Flex as="ul" align="center" gap={4}>
-        <Link color="blue.200" fontFamily="heading" fontWeight={700}>Products</Link>
-        <Link color="blue.200" fontFamily="heading" fontWeight={700}>Pricing</Link>
-        <Link color="blue.200" fontFamily="heading" fontWeight={700}>Developers</Link>
+        <Link href="#products" color="blue.200" fontFamily="heading" fontWeight={700}>Products</Link>
+        <Link href="#pricing" color="blue.200" fontFamily="heading" fontWeight={700}>Pricing</Link>
+        <Link href="#try-it" color="blue.200" fontFamily="heading" fontWeight={700}>Try it out</Link>
         <Flex gap={2} ml={4}>
           <Button variant="solid" w={32} borderRadius="full">Sign up</Button>
           <Button variant="outline" w={32} borderRadius="full">Login</Button>

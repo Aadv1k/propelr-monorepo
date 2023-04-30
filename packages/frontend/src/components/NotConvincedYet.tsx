@@ -33,7 +33,7 @@ export default function NotConvincedYet() {
   } 
 
   return (
-    <chakra.Box maxW={1400} mx="auto" p={4}>
+    <chakra.Box maxW={1400} mx="auto" p={4} as="section" id="try-it">
       <chakra.Heading
         as="h2"
         fontWeight={900}

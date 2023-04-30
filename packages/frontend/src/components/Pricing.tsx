@@ -2,7 +2,7 @@ import * as chakra from "@chakra-ui/react";
 
 export default function Products() {
   return (
-    <chakra.Box maxW={1400} mx="auto" p={4}>
+    <chakra.Box maxW={1400} mx="auto" p={4} as="section" id="pricing">
       <chakra.Heading as="h2" fontWeight={900} textAlign="left" my={2} color="blue.200" maxW="40ch ">
         Pricing
       </chakra.Heading>
