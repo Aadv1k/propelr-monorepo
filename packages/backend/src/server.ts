@@ -52,26 +52,23 @@ const ROUTES = {
 
 app.use(passport.initialize());
 
-app.use(async (ctx: Koa.Context, next) => {
-  await USER_DB.init();
+async function startFlowsAfterInit() {
   let flows = await USER_DB.RAW_getFlows({});
-
   flows.forEach((flow: Flow) => {
     if (flow.schedule.type === "none") return;
-
     FLOW_RUNNER.register(flow, (f: any) => {
       console.log(`should run: ${f.query.syntax}`);
     })
     if (flow.status === FlowState.RUNNING) FLOW_RUNNER.startFlowById(flow.id);
   })
+}
+
+app.use(async (ctx: Koa.Context, next) => {
+  await USER_DB.init();
+  await startFlowsAfterInit();
 
   if (ctx.path === '/') {
-    ctx.set('Content-type', 'text/html');
-    ctx.status = 200;
-    ctx.body = `
-      <a href="/api/oauth/google">login with google</a>
-      <a href="/api/oauth/microsoft">login with microsoft</a>
-      `;
+    utils.sendJSONResponse(ctx, Object.keys(ROUTES), 200);
   } else if (ctx.url.match(ROUTES['/api/flows']) && ctx.method === 'GET') {
     await getFlow(ctx);
   } else if (ctx.url.match(ROUTES['/api/flows']) && ctx.method === 'POST') {
@@ -99,7 +96,6 @@ app.use(async (ctx: Koa.Context, next) => {
   } else {
     utils.sendErrorResponse(ctx, ERROR.notFound);
   } 
-
   await next();
 });
 

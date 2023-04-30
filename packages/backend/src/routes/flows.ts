@@ -76,7 +76,7 @@ async function getFlowStop(ctx: Koa.Context): Promise<void> {
   let user;
 
   if (validApiKey) {
-    const hasPerms = await hasKeyPermission(validApiKey, KeyPerms.stop)
+    const hasPerms = validApiKey.permissions.includes(KeyPerms.execute);
     if (!hasPerms) {
       utils.sendErrorResponse(ctx, ERROR.forbidden);
       return;
@@ -135,7 +135,7 @@ async function getFlowStart(ctx: Koa.Context): Promise<void> {
   let user;
 
   if (validApiKey) {
-    const hasPerms = await hasKeyPermission(validApiKey, KeyPerms.start)
+    const hasPerms = validApiKey.permissions.includes(KeyPerms.execute);
     if (!hasPerms) {
       utils.sendErrorResponse(ctx, ERROR.forbidden);
       return;
@@ -201,7 +201,7 @@ async function deleteFlow(ctx: Koa.Context): Promise<void> {
   let user;
 
   if (validApiKey) {
-    const hasPerms = await hasKeyPermission(validApiKey, KeyPerms.delete)
+    const hasPerms = validApiKey.permissions.includes(KeyPerms.execute);
     if (!hasPerms) {
       utils.sendErrorResponse(ctx, ERROR.forbidden);
       return;
@@ -246,7 +246,7 @@ async function createFlow(ctx: Koa.Context): Promise<void> {
   let user;
 
   if (validApiKey) {
-    const hasPerms = await hasKeyPermission(validApiKey, KeyPerms.create)
+    const hasPerms = validApiKey.permissions.includes(KeyPerms.execute);
     if (!hasPerms) {
       utils.sendErrorResponse(ctx, ERROR.forbidden);
       return;
@@ -407,6 +407,11 @@ async function getFlow(ctx: Koa.Context): Promise<void> {
   let user;
 
   if (validApiKey) {
+    const hasPerms = validApiKey.permissions.includes(KeyPerms.read);
+    if (!hasPerms) {
+      utils.sendErrorResponse(ctx, ERROR.forbidden);
+      return;
+    }
     user = { id: validApiKey.userid };
   } else {
     user = validJwtToken;
