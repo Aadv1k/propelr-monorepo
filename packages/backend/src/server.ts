@@ -42,7 +42,8 @@ const ROUTES = {
   '/api/users/register': /^\/api\/users\/register\/?$/,
   '/api/users/login': /^\/api\/users\/login\/?$/,
   '/api/flows': /^\/api\/flows\/?$/,
-  '/api/oauth/callback': /^\/api\/oauth\/callback\/?$/,
+  '/api/oauth/:id/callback': /^\/api\/oauth\/[a-zA-Z0-9_-]+\/callback\/?$/,
+  '/api/oauth/:id': /^\/api\/oauth\/[a-zA-Z0-9_-]+\/?$/,
   '/api/flows/:id': /^\/api\/flows\/[a-zA-Z0-9_-]+\/?$/,
   "/api/flows/:id/execute": /^\/api\/flows\/[a-zA-Z0-9_-]+\/execute\/?$/,
   "/api/flows/:id/start": /^\/api\/flows\/[a-zA-Z0-9_-]+\/start\/?$/,
@@ -89,9 +90,12 @@ app.use(async (ctx: Koa.Context, next) => {
     await routeUsersGet(ctx);
   } else if (ctx.url.match(ROUTES['/api/users']) && ctx.method === 'DELETE') {
     await routeUsersDelete(ctx);
-  } else if (ctx.url.match(ROUTES['/api/oauth/callback']) && ctx.method === 'GET') {
+  } else if (ctx.url.match(ROUTES['/api/oauth/:id/callback']) && ctx.method === 'GET') {
     await routeOAuthCallback(ctx, next);
-  } else if (ctx.url.match(ROUTES['/api/developers/keys']) && ctx.method === "POST") {
+  }  else if (ctx.url.match(ROUTES['/api/oauth/:id']) && ctx.method === "GET") {
+    await routeOAuth(ctx, next);
+  }
+  else if (ctx.url.match(ROUTES['/api/developers/keys']) && ctx.method === "POST") {
     await createKey(ctx);
   } else {
     utils.sendErrorResponse(ctx, ERROR.notFound);
