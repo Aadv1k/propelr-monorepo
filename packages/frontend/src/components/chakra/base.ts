@@ -1,6 +1,12 @@
 import { extendTheme } from "@chakra-ui/react"
 import { StyleFunctionProps } from '@chakra-ui/theme-tools'
 
+const solidDisabled = {
+  pointerEvents: "none",
+  cursor: "not-allowed",
+  opacity: 0.6,
+}
+
 const theme = extendTheme({
   components: {
     Button: {
@@ -12,12 +18,21 @@ const theme = extendTheme({
             opacity: 0.9,
             backgroundColor: "blue.100",
             color: "white.200",
+            _disabled: {
+              ...solidDisabled
+            }
           },
+
           _active: {
             backgroundColor: "blue.100",
             color: "white.200",
             transform: "scale(.96)",
+          },
+
+          _disabled: {
+            ...solidDisabled,
           }
+
         },
 
         outline: {

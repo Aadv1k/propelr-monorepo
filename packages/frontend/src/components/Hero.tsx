@@ -2,6 +2,8 @@ import { Heading, useMediaQuery, Text, Flex, Button } from '@chakra-ui/react';
 import * as chakra from '@chakra-ui/react';
 import Overlay from './Overlay';
 
+import { Link as RouterLink } from 'react-router-dom';
+
 import imgWsj from '../assets/wsj-fhd.png';
 import imgGmail from '../assets/gmail-fhd.png';
 import imgArrow from '../assets/arrow-y.png';
@@ -62,9 +64,12 @@ export default function Hero() {
             Use powerful queries and a rich UI to get any data to your favourite platforms
           </Text>
         </Flex>
-        <Button variant="solid" w="50%" maxW="250px" borderRadius="full" py={4}>
-          Sign up
-        </Button>
+
+        <RouterLink to="/register" style={{ width: '100%' }}>
+          <Button as="a" variant="solid" w="100%" maxW="250px" borderRadius="full" py={4}>
+            Sign up
+          </Button>
+        </RouterLink>
 
         <chakra.Flex
           flexDirection={{ base: 'column', md: 'row' }}

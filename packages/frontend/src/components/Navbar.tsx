@@ -1,5 +1,6 @@
 import {  useMediaQuery, Box, Link, Flex, Button, useDisclosure, Input }  from "@chakra-ui/react";
 import LoginGroup from "./LoginGroup";
+import { Link as RouterLink } from "react-router-dom";
 
 import {
   Drawer,
@@ -31,9 +32,9 @@ function NavDrawer() {
           <DrawerCloseButton />
           <DrawerBody>
           <Flex as="ul" align="start" direction="column" gap={4}>
-            <Link href="#pricing" color="blue.200" fontFamily="heading" fontWeight={700}>Products</Link>
-            <Link color="blue.200" fontFamily="heading" fontWeight={700}>Pricing</Link>
-            <Link color="blue.200" fontFamily="heading" fontWeight={700}>Developers</Link>
+            <Link href="/#products" color="blue.200" fontFamily="heading" fontWeight={700}>Products</Link>
+            <Link href="/#pricing" color="blue.200" fontFamily="heading" fontWeight={700}>Pricing</Link>
+            <Link href="/#try-it" color="blue.200" fontFamily="heading" fontWeight={700}>Try it out</Link>
           </Flex>
           </DrawerBody>
 
@@ -64,21 +65,29 @@ export default function Navbar() {
       bg="white.200"
 
     >
-      <Link color="blue.200" fontFamily="heading" fontWeight={700} fontSize={{base: "2xl", md: "3xl"}}>Propelr</Link>
+
+      <RouterLink to="/">
+        <Link color="blue.200" fontFamily="heading" fontWeight={700} fontSize={{base: "2xl", md: "3xl"}}>Propelr</Link>
+      </RouterLink>
 
       {isDesktop ? <NavDrawer /> : 
 
       <Flex as="ul" align="center" gap={4}>
-        <Link href="#products" color="blue.200" fontFamily="heading" fontWeight={700}>Products</Link>
-        <Link href="#pricing" color="blue.200" fontFamily="heading" fontWeight={700}>Pricing</Link>
-        <Link href="#try-it" color="blue.200" fontFamily="heading" fontWeight={700}>Try it out</Link>
+        <Link href="/#products" color="blue.200" fontFamily="heading" fontWeight={700}>Products</Link>
+        <Link href="/#pricing" color="blue.200" fontFamily="heading" fontWeight={700}>Pricing</Link>
+        <Link href="/#try-it" color="blue.200" fontFamily="heading" fontWeight={700}>Try it out</Link>
         <Flex gap={2} ml={4}>
-          <Button variant="solid" w={32} borderRadius="full">Sign up</Button>
-          <Button variant="outline" w={32} borderRadius="full">Login</Button>
+          <RouterLink to="/register">
+            <Button as="a" variant="solid" w={32} borderRadius="full">Sign up</Button>
+          </RouterLink>
+
+          <RouterLink to="/register">
+            <Button as="a" variant="outline" w={32} borderRadius="full">Login</Button>
+          </RouterLink>
+
         </Flex>
       </Flex>
-      }
-
+    }
     </Box>
   )
 
