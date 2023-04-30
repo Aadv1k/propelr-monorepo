@@ -1,4 +1,6 @@
 import * as chakra from '@chakra-ui/react';
+import React from "react";
+
 
 const dracoQuery = `VAR page = FETCH "https://coinmarketcap.com/" 
   HEADER "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/112.0"
@@ -9,7 +11,27 @@ VAR btcHtml = EXTRACT ".sc-beb003d5-3 > tbody:nth-child(3) > tr:nth-child(1) > t
 VAR btcPrice = EXTRACT "children.0.text" FROM btcHtml
 `;
 
+const exampleResponse = `{
+  "data": {
+    "btcPrice": "$29,242.28"
+  },
+  "message": "Parsed query in 76ms",
+  "status": 200
+}
+`
+
 export default function NotConvincedYet() {
+  const [apiResponse, setApiResponse] = React.useState("");
+  const [isLoading, setIsLoading] = React.useState(false);
+
+  const fetchQuery = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setApiResponse(exampleResponse);
+      setIsLoading(false);
+    } , 600)
+  } 
+
   return (
     <chakra.Box maxW={1400} mx="auto" p={4}>
       <chakra.Heading
@@ -64,20 +86,35 @@ export default function NotConvincedYet() {
               </chakra.TabPanel>
             </chakra.TabPanels>
           </chakra.Tabs>
-          <chakra.Button variant="solid">Run query</chakra.Button>
+          <chakra.Button variant="solid" onClick={fetchQuery} isLoading={isLoading}>Run query</chakra.Button>
         </chakra.Box>
+
         <chakra.Box
-          p={6}
-          bg="blue.200"
+          bg="white"
+          borderColor="blue.200"
+          borderWidth="1px"
+          borderStyle="solid"
           rounded="md"
-          color="white.100"
+          color="black"
           display="flex"
           flexDirection="column"
           gap={4}
           w={{ base: 'full', md: '50%' }}
         >
-          Output will show up here
+                <chakra.Code
+                  h="full"
+                  bg="#282828"
+                  color="white.200"
+                  overflowY="scroll"
+                  display="block"
+                  whiteSpace="break-spaces"
+                  textAlign="left"
+                  p={2}
+                >
+                  {apiResponse || "Run the query to see the output"}
+                </chakra.Code>
         </chakra.Box>
+
       </chakra.Flex>
     </chakra.Box>
   );
