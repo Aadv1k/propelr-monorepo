@@ -9,11 +9,29 @@ import { USER_DB } from '../models/UserRepository';
 import flowSchema from "../schemas/flow";
 import { FLOW_RUNNER } from "../models/FlowRunner";
 
-async function hasValidApiKey(ctx: Koa.Context): Promise<boolean> {
-  if (!ctx.headers?.['x-api-key']) return false;
+function runDracoQueryAndGetVar(
+  query: string,
+  vars: Array<string>,
+): Promise<Array<string>> | undefined {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const lexer = new draco.lexer(query);
+      const parser = new draco.parser(lexer.lex());
+      const AST = parser.parse();
+      const interpreter = new draco.interpreter(AST);
+      await interpreter.run();
+      resolve(vars.map((e) => interpreter.getVar(e)));
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+async function parseApiKey(ctx: Koa.Context): Promise<any | null> {
+  if (!ctx.headers?.['x-api-key']) return null;
   const key = await USER_DB.getKey(ctx.headers?.['x-api-key'] as string)
-  if (!key) return false;
-  return true;
+  if (!key) return null;
+  return key;
 }
 
 async function hasKeyPermission(key: string, perm: KeyPerms): Promise<boolean> {
@@ -23,42 +41,53 @@ async function hasKeyPermission(key: string, perm: KeyPerms): Promise<boolean> {
   return true
 }
 
+
+async function parseJwtTokenFromHeader(ctx: Koa.Context): Promise<any | null> {
+  if (!ctx.headers?.['authorization']) return null;
+  let authHeader = ctx.headers?.['authorization'] as string;
+
+  const [scheme, token] = authHeader.split(' ');
+
+  if (!scheme && !token) return null;
+
+  if (!common.jwt.verify(token, JWT_SECRET)) return null;
+
+  return common.jwt.parse(token);
+}
+
+
 async function getFlowStop(ctx: Koa.Context): Promise<void> {
   let splitUrl = ctx.path.split('/');
   let flowToStop = splitUrl?.[splitUrl.findIndex((e) => e === 'flows') + 1];
-
-  const jwtString = ctx.headers?.['authorization']?.split(' ').pop() ?? '';
-
-  const apiKey = ctx.headers?.['x-api-key'];
-  const hasValidKey = await hasValidApiKey(ctx)
-
-  if (
-    !common.jwt.verify(jwtString, JWT_SECRET) && 
-    !hasValidKey
-  ) {
-    utils.sendErrorResponse(ctx, ERROR.unauthorized);
-    return;
-  }
-
-  let parsedToken;
-  if (hasValidKey) {
-    if (!await hasKeyPermission(apiKey as string, KeyPerms.stop)) {
-      utils.sendErrorResponse(ctx, ERROR.forbidden);
-      return;
-    }
-    const key = (await USER_DB.getKey(apiKey as string)) as Key;
-    parsedToken = { id: key.userid };
-  } else {
-    parsedToken = common.jwt.parse(jwtString);
-  }
-  
 
   if (!flowToStop) {
     utils.sendErrorResponse(ctx, ERROR.badInput);
     return;
   }
 
-  const foundFlow = await USER_DB.getFlowById(flowToStop);
+  const validApiKey = await parseApiKey(ctx)
+  const validJwtToken = await parseJwtTokenFromHeader(ctx);
+
+  if (!validJwtToken && !validApiKey) {
+    utils.sendErrorResponse(ctx, ERROR.unauthorized);
+    return;
+  }
+
+  let user;
+
+  if (validApiKey) {
+    const hasPerms = await hasKeyPermission(validApiKey, KeyPerms.stop)
+    if (!hasPerms) {
+      utils.sendErrorResponse(ctx, ERROR.forbidden);
+      return;
+    }
+    user = { id: validApiKey.userid };
+  } else {
+    user = validJwtToken;
+  }
+  
+
+  const foundFlow = await USER_DB.getFlowById(flowToStop, user.id);
   if (!foundFlow) {
     utils.sendErrorResponse(ctx, ERROR.flowNotFound);
     return;
@@ -90,29 +119,30 @@ async function getFlowStart(ctx: Koa.Context): Promise<void> {
   let splitUrl = ctx.path.split('/');
   let flowToStart = splitUrl?.[splitUrl.findIndex((e) => e === 'flows') + 1];
 
-  const jwtString = ctx.headers?.['authorization']?.split(' ').pop() ?? '';
-  const apiKey = ctx.headers?.['x-api-key'];
-  const hasValidKey = await hasValidApiKey(ctx)
+  if (!flowToStart) {
+    utils.sendErrorResponse(ctx, ERROR.badInput);
+    return;
+  }
 
-  if (
-    !common.jwt.verify(jwtString, JWT_SECRET) && 
-    !hasValidKey
-  ) {
+  const validApiKey = await parseApiKey(ctx)
+  const validJwtToken = await parseJwtTokenFromHeader(ctx);
+
+  if (!validJwtToken && !validApiKey) {
     utils.sendErrorResponse(ctx, ERROR.unauthorized);
     return;
   }
 
+  let user;
 
-  let parsedToken;
-  if (hasValidKey) {
-    if (!await hasKeyPermission(apiKey as string, KeyPerms.start)) {
+  if (validApiKey) {
+    const hasPerms = await hasKeyPermission(validApiKey, KeyPerms.start)
+    if (!hasPerms) {
       utils.sendErrorResponse(ctx, ERROR.forbidden);
       return;
     }
-    const key = (await USER_DB.getKey(apiKey as string)) as Key;
-    parsedToken = { id: key.userid };
+    user = { id: validApiKey.userid };
   } else {
-    parsedToken = common.jwt.parse(jwtString);
+    user = validJwtToken;
   }
 
   if (!flowToStart) {
@@ -120,7 +150,7 @@ async function getFlowStart(ctx: Koa.Context): Promise<void> {
     return;
   }
 
-  const foundFlow = await USER_DB.getFlowById(flowToStart);
+  const foundFlow = await USER_DB.getFlowById(flowToStart, user.id);
   if (!foundFlow) {
     utils.sendErrorResponse(ctx, ERROR.notFound);
     return;
@@ -152,32 +182,6 @@ async function getFlowStart(ctx: Koa.Context): Promise<void> {
 }
 
 async function deleteFlow(ctx: Koa.Context): Promise<void> {
-  const jwtString = ctx.headers?.['authorization']?.split(' ').pop() ?? '';
-
-  const apiKey = ctx.headers?.['x-api-key'];
-  const hasValidKey = await hasValidApiKey(ctx)
-
-  if (
-    !common.jwt.verify(jwtString, JWT_SECRET) && 
-    !hasValidKey
-  ) {
-    utils.sendErrorResponse(ctx, ERROR.unauthorized);
-    return;
-  }
-
-  let parsedToken;
-  if (hasValidKey) {
-    if (!await hasKeyPermission(apiKey as string, KeyPerms.delete)) {
-      utils.sendErrorResponse(ctx, ERROR.forbidden);
-      return;
-    }
-    const key = (await USER_DB.getKey(apiKey as string)) as Key;
-    parsedToken = { id: key.userid };
-  } else {
-    parsedToken = common.jwt.parse(jwtString);
-  }
-
-
   let splitUrl = ctx.path.split('/');
   let flowToDelete = splitUrl?.[splitUrl.findIndex((e) => e === 'flows') + 1];
 
@@ -186,13 +190,35 @@ async function deleteFlow(ctx: Koa.Context): Promise<void> {
     return;
   }
 
+  const validApiKey = await parseApiKey(ctx)
+  const validJwtToken = await parseJwtTokenFromHeader(ctx);
+
+  if (!validJwtToken && !validApiKey) {
+    utils.sendErrorResponse(ctx, ERROR.unauthorized);
+    return;
+  }
+
+  let user;
+
+  if (validApiKey) {
+    const hasPerms = await hasKeyPermission(validApiKey, KeyPerms.delete)
+    if (!hasPerms) {
+      utils.sendErrorResponse(ctx, ERROR.forbidden);
+      return;
+    }
+    user = { id: validApiKey.userid };
+  } else {
+    user = validJwtToken;
+  }
+
+
   const flowExists = await USER_DB.flowExists(flowToDelete);
   if (!flowExists) {
     utils.sendErrorResponse(ctx, ERROR.flowNotFound);
     return;
   }
 
-  const deletedFlow = await USER_DB.deleteFlowByUserId(flowToDelete, parsedToken.id);
+  const deletedFlow = await USER_DB.deleteFlowByUserId(flowToDelete, user.id);
 
   if (!deletedFlow) {
     utils.sendErrorResponse(ctx, ERROR.internalError);
@@ -209,29 +235,25 @@ async function deleteFlow(ctx: Koa.Context): Promise<void> {
 }
 
 async function createFlow(ctx: Koa.Context): Promise<void> {
-  const jwtString = ctx.headers?.['authorization']?.split(' ').pop() ?? '';
+  const validApiKey = await parseApiKey(ctx)
+  const validJwtToken = await parseJwtTokenFromHeader(ctx);
 
-  const apiKey = ctx.headers?.['x-api-key'];
-  const hasValidKey = await hasValidApiKey(ctx)
-
-  if (
-    !common.jwt.verify(jwtString, JWT_SECRET) && 
-    !hasValidKey
-  ) {
+  if (!validJwtToken && !validApiKey) {
     utils.sendErrorResponse(ctx, ERROR.unauthorized);
     return;
   }
 
-  let parsedToken ;
-  if (hasValidKey) {
-    const key = (await USER_DB.getKey(apiKey as string)) as Key;
-    parsedToken = { id: key.userid };
-    if (!await hasKeyPermission(apiKey as string, KeyPerms.create)) {
+  let user;
+
+  if (validApiKey) {
+    const hasPerms = await hasKeyPermission(validApiKey, KeyPerms.create)
+    if (!hasPerms) {
       utils.sendErrorResponse(ctx, ERROR.forbidden);
       return;
     }
+    user = { id: validApiKey.userid };
   } else {
-    parsedToken = common.jwt.parse(jwtString);
+    user = validJwtToken;
   }
 
 
@@ -253,8 +275,7 @@ async function createFlow(ctx: Koa.Context): Promise<void> {
   const data = ctx.request.body as Flow;
 
   try {
-    const d = await runDracoQueryAndGetVar(data.query.syntax, data.query.vars);
-    console.log(d);
+    await runDracoQueryAndGetVar(data.query.syntax, data.query.vars);
   } catch (err: any) {
     utils.sendJSONResponse(
       ctx,
@@ -273,7 +294,7 @@ async function createFlow(ctx: Koa.Context): Promise<void> {
 
   const flow: Flow = {
     id: utils.generateId(4),
-    userid: parsedToken.id as string,
+    userid: user.id as string,
     status: FlowState.STOPPED,
     query: data.query,
     schedule: data.schedule,
@@ -303,61 +324,43 @@ async function createFlow(ctx: Koa.Context): Promise<void> {
   });
 }
 
-function runDracoQueryAndGetVar(
-  query: string,
-  vars: Array<string>,
-): Promise<Array<string>> | undefined {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const lexer = new draco.lexer(query);
-      const parser = new draco.parser(lexer.lex());
-      const AST = JSON.parse(JSON.stringify(parser.parse()));
-      console.log(JSON.stringify(parser.parse()));
-      const interpreter = new draco.interpreter(AST);
-      await interpreter.run();
-      resolve(vars.map((e) => interpreter.getVar(e)));
-    } catch (err) {
-      reject(err);
-    }
-  });
-}
 
 async function getFlowExecute(ctx: Koa.Context): Promise<void> {
   let splitUrl = ctx.path.split('/');
-  let flowToExecute = splitUrl?.[splitUrl.findIndex((e) => e === 'execute') - 1];
-
-  const jwtString = ctx.headers?.['authorization']?.split(' ').pop() ?? '';
-  let parsedToken;
-
-  const apiKey = ctx.headers?.['x-api-key'];
-  const hasValidKey = await hasValidApiKey(ctx)
-
-  if (
-    !common.jwt.verify(jwtString, JWT_SECRET) && 
-    !hasValidKey
-  ) {
-    utils.sendErrorResponse(ctx, ERROR.unauthorized);
-    return;
-  }
-
-  if (hasValidKey) {
-    if (!await hasKeyPermission(apiKey as string, KeyPerms.execute)) {
-      utils.sendErrorResponse(ctx, ERROR.forbidden);
-      return;
-    }
-    const key = (await USER_DB.getKey(apiKey as string)) as Key;
-    parsedToken = { id: key.userid };
-  } else {
-    parsedToken = common.jwt.parse(jwtString);
-  }
-
+  let flowToExecute = splitUrl?.[splitUrl.findIndex((e) => e === 'flows') + 1];
 
   if (!flowToExecute) {
     utils.sendErrorResponse(ctx, ERROR.badInput);
     return;
   }
 
-  const foundFlow = await USER_DB.getFlowById(flowToExecute);
+  const validApiKey = await parseApiKey(ctx)
+  const validJwtToken = await parseJwtTokenFromHeader(ctx);
+
+  if (!validJwtToken && !validApiKey) {
+    utils.sendErrorResponse(ctx, ERROR.unauthorized);
+    return;
+  }
+
+  let user;
+
+  if (validApiKey) {
+    const hasPerms = validApiKey.permissions.includes(KeyPerms.execute);
+    if (!hasPerms) {
+      utils.sendErrorResponse(ctx, ERROR.forbidden);
+      return;
+    }
+    user = { id: validApiKey.userid };
+  } else {
+    user = validJwtToken;
+  }
+  
+  if (!flowToExecute) {
+    utils.sendErrorResponse(ctx, ERROR.badInput);
+    return;
+  }
+
+  const foundFlow = await USER_DB.getFlowById(flowToExecute, user.id);
 
   if (!foundFlow) {
     utils.sendErrorResponse(ctx, ERROR.flowNotFound);
@@ -387,45 +390,36 @@ async function getFlowExecute(ctx: Koa.Context): Promise<void> {
   utils.sendJSONResponse(ctx, {
     data: ret,
     message: `Parsed query in ${end - start}ms`,
+    vars: computedVars,
     status: 200,
   });
 }
 
 async function getFlow(ctx: Koa.Context): Promise<void> {
-  const jwtString = ctx.headers?.['authorization']?.split(' ').pop() ?? "";
+  const validApiKey = await parseApiKey(ctx)
+  const validJwtToken = await parseJwtTokenFromHeader(ctx);
 
-  const apiKey = ctx.headers?.['x-api-key'];
-  const hasValidKey = await hasValidApiKey(ctx)
-
-  if (
-    !common.jwt.verify(jwtString, JWT_SECRET) && 
-    !hasValidKey
-  ) {
+  if (!validJwtToken && !validApiKey) {
     utils.sendErrorResponse(ctx, ERROR.unauthorized);
     return;
   }
 
-  let parsedToken 
+  let user;
 
-  if (hasValidKey) {
-    if (!await hasKeyPermission(apiKey as string, KeyPerms.read)) {
-      utils.sendErrorResponse(ctx, ERROR.forbidden);
-      return;
-    }
-    const key = (await USER_DB.getKey(apiKey as string)) as Key;
-    parsedToken = { id: key.userid };
+  if (validApiKey) {
+    user = { id: validApiKey.userid };
   } else {
-    parsedToken = common.jwt.parse(jwtString);
+    user = validJwtToken;
   }
 
-  const foundUser = await USER_DB.getUserById(parsedToken.id);
+  const foundUser = await USER_DB.getUserById(user.id);
 
   if (!foundUser) {
     utils.sendErrorResponse(ctx, ERROR.userNotFound);
     return;
   }
 
-  const foundFlows = await USER_DB.getFlowsByUserId(foundUser?.id as string);
+  const foundFlows = await USER_DB.getFlowsByUserId(user.id as string);
   if (!foundFlows) {
     utils.sendErrorResponse(ctx, ERROR.internalError);
     return;

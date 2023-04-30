@@ -17,7 +17,7 @@ export default {
         dayOfWeek: { type: 'integer', minimum: 1, maximum: 7 },
         dayOfMonth: { type: 'integer', minimum: 1, maximum: 31 },
       },
-      required: ['type', 'time'],
+      required: ['type'],
       oneOf: [
         {
           properties: { type: { const: 'daily' } },
@@ -43,7 +43,6 @@ export default {
           },
           required: ['type'],
         },
-
       ],
     },
     receiver: {

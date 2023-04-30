@@ -158,9 +158,9 @@ export default class UserRepo {
     return false;
   }
 
-  async getFlowById(flowid: string): Promise<Flow | null> {
+  async getFlowById(flowid: string, userid: string): Promise<Flow | null> {
     try {
-      const flw = await this.flows.findOne({ id: flowid });
+      const flw = await this.flows.findOne({ id: flowid, userid: userid });
       return flw;
     } catch (err) {
       return null;

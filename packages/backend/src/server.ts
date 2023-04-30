@@ -57,13 +57,12 @@ app.use(async (ctx: Koa.Context, next) => {
   let flows = await USER_DB.RAW_getFlows({});
 
   flows.forEach((flow: Flow) => {
+    if (flow.schedule.type === "none") return;
+
     FLOW_RUNNER.register(flow, (f: any) => {
-      if (flow.schedule.type === "none") return;
       console.log(`should run: ${f.query.syntax}`);
     })
-    if (flow.status === FlowState.RUNNING) {
-      FLOW_RUNNER.startFlowById(flow.id);
-    }
+    if (flow.status === FlowState.RUNNING) FLOW_RUNNER.startFlowById(flow.id);
   })
 
   if (ctx.path === '/') {
