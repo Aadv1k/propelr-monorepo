@@ -7,6 +7,7 @@ import Navbar from "./components/Navbar";
 import Products from "./components/Products";
 import Pricing from "./components/Pricing";
 import NotConvincedYet from "./components/NotConvincedYet";
+import Footer from "./components/Footer";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Products />
         <Pricing />
         <NotConvincedYet />
+        <Footer />
       </ChakraProvider>
     </div>
   );
