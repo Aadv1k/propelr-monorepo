@@ -1,6 +1,5 @@
 import {
   Card,
-
   CardHeader,
   CardBody,
   CardFooter,
@@ -18,6 +17,8 @@ import {
 import { FormControl, FormLabel, FormErrorMessage, Input, FormHelperText } from '@chakra-ui/react';
 import React from 'react';
 
+import InputPassword from "./chakra/InputPassword";
+
 import imgMonkey2 from '../assets/dalle-monkey-2.png';
 import { useToast } from '@chakra-ui/react';
 
@@ -33,21 +34,42 @@ const sampleRegisterData = JSON.stringify({
 });
 
 export default function Register() {
-  const [password, setPassword] = React.useState('');
-  const [repPassword, setRepPassword] = React.useState('');
-  const [email, setEmail] = React.useState('');
-
-  const [isNotSamePassword, setNotSamePassword] = React.useState(false);
-  const [isBadPassword, setBadPassword] = React.useState(false);
-  const [isError, setError] = React.useState(false);
   const [isLoading, setLoading] = React.useState(false);
   const toast = useToast();
 
-  React.useEffect(() => {
-    setNotSamePassword(password !== repPassword);
-    setBadPassword(password.length < 8 && password !== '');
-    setError(isNotSamePassword || isBadPassword);
-  });
+  const handleSubmit = (e: any) => {
+    e.preventDefault();
+    const form = new FormData(e.target as HTMLFormElement);
+    const formProps = Object.fromEntries(form);
+    setLoading(true);
+
+    fetch("http://localhost:4000/api/users/login", {
+      method: "POST",
+      headers: {
+        "Content-type": "application/json"
+      },
+      body: JSON.stringify({
+        email: formProps.email,
+        password: formProps.password
+      })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status !== 200)  {
+          toast({
+            title: data.error.message,
+            description: data.error.details,
+            position: 'top-right',
+            status: 'error',
+            duration: 2000,
+            isClosable: true,
+          });
+        } else {
+          console.log(data);
+        }
+        setLoading(false);
+      })
+  }
 
   return (
     <Card maxW={600} w="90%" mx="auto" my={50}>
@@ -88,30 +110,7 @@ export default function Register() {
           as="form"
           my={2}
           gap={1}
-          onSubmit={(e) => {
-            e.preventDefault();
-            const form = new FormData(e.target as HTMLFormElement);
-            const formProps = Object.fromEntries(form);
-
-            setLoading(true);
-            setTimeout(() => {
-              const data = JSON.parse(sampleRegisterData);
-
-              if (data.status !== 200) {
-                toast({
-                  title: data.error.message,
-                  description: data.error.details,
-                  position: 'top-right',
-                  status: 'error',
-                  duration: 2000,
-                  isClosable: true,
-                });
-              } else {
-                console.log('OK');
-              }
-              setLoading(false);
-            }, 1000);
-          }}
+          onSubmit={handleSubmit}
         >
           <FormControl>
             <FormLabel>Email</FormLabel>
@@ -120,24 +119,12 @@ export default function Register() {
 
           <FormControl>
             <FormLabel>Password</FormLabel>
-            <Input
-              type="password"
-              name="password"
-              placeholder="Password"
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            {isBadPassword && (
-              <Text textAlign="left" color="red.600">
-                Need a stronger password
-              </Text>
-            )}
+            <InputPassword />
           </FormControl>
 
           <Button
             variant="solid"
             type="submit"
-            isDisabled={isError}
             isLoading={isLoading}
             w={{ base: 'full' }}
           >
