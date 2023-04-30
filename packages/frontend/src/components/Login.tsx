@@ -1,7 +1,6 @@
-
-import { Link as RouterLink } from "react-router-dom";
 import {
   Card,
+
   CardHeader,
   CardBody,
   CardFooter,
@@ -21,6 +20,8 @@ import React from 'react';
 
 import imgMonkey2 from '../assets/dalle-monkey-2.png';
 import { useToast } from '@chakra-ui/react';
+
+import { Link as RouterLink } from "react-router-dom";
 
 const sampleRegisterData = JSON.stringify({
   error: {
@@ -52,7 +53,7 @@ export default function Register() {
     <Card maxW={600} w="90%" mx="auto" my={50}>
       <CardHeader>
         <Heading size="xl" fontFamily="heading" color="blue.200" fontWeight={800} textAlign="left">
-          Sign Up
+          Login
         </Heading>
       </CardHeader>
 
@@ -63,7 +64,7 @@ export default function Register() {
             variant="solid"
             w="full"
           >
-            Sign up with microsoft
+            Login with microsoft
           </Button>
 
           <Button
@@ -71,7 +72,7 @@ export default function Register() {
             variant="solid"
             w="full"
           >
-            Sign up with google
+            Login with google
           </Button>
         </Flex>
 
@@ -133,21 +134,6 @@ export default function Register() {
             )}
           </FormControl>
 
-          <FormControl>
-            <FormLabel>Confirm Password</FormLabel>
-            <Input
-              type="password"
-              placeholder="Confirm password"
-              onChange={(e) => setRepPassword(e.target.value)}
-              required
-            />
-            {isNotSamePassword && (
-              <Text textAlign="left" color="red.600">
-                Passwords don't match
-              </Text>
-            )}
-          </FormControl>
-
           <Button
             variant="solid"
             type="submit"
@@ -157,9 +143,9 @@ export default function Register() {
           >
             Submit
           </Button>
-
         </Stack>
-        <Text mt={3} color="gray.600">Already a registered user? <RouterLink to="/login"><Link color="blue.100" textDecoration="underline">Login</Link></RouterLink ></Text>
+          <Text mt={3} color="gray.600">Don't have an account yet? <RouterLink to="/register"><Link color="blue.100" textDecoration="underline">Sign up</Link> </RouterLink >
+        </Text>
       </CardBody>
     </Card>
   );

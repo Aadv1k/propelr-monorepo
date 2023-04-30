@@ -81,7 +81,7 @@ export default function Navbar() {
             <Button as="a" variant="solid" w={32} borderRadius="full">Sign up</Button>
           </RouterLink>
 
-          <RouterLink to="/register">
+          <RouterLink to="/login">
             <Button as="a" variant="outline" w={32} borderRadius="full">Login</Button>
           </RouterLink>
 

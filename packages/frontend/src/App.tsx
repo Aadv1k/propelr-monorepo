@@ -10,6 +10,7 @@ import NotConvincedYet from "./components/NotConvincedYet";
 import Footer from "./components/Footer";
 
 import Register from "./components/Register";
+import Login from "./components/Login";
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
@@ -37,6 +38,15 @@ function RegisterPage() {
   )
 }
 
+function LoginPage() {
+  return (
+    <>
+          <Navbar />
+      <Login />
+    </>
+  )
+}
+
 function App() {
   return (
     <div className="App">
@@ -46,6 +56,7 @@ function App() {
           <Routes>
             <Route path="/" element={<IndexPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/login" element={<LoginPage />} />
           </Routes>
         </BrowserRouter>
         </ChakraProvider>

@@ -9,6 +9,12 @@ const solidDisabled = {
 
 const theme = extendTheme({
   components: {
+    Input: {
+      field: {
+
+      }
+    },
+
     Button: {
       variants: {
         solid: {
