@@ -19,13 +19,13 @@ export const ABSTRACT_API = {
 export const GOOGLE_AUTH = {
   CLIENT_ID: process.env.GOOGLE_CLIENT_ID ?? '',
   CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ?? '',
-  REDIRECT: 'http://localhost:3000/api/oauth/google/callback',
+  REDIRECT: `http://localhost:${PORT}/api/oauth/google/callback`,
 };
 
 export const MS_AUTH = {
   CLIENT_ID: process.env.MS_CLIENT_ID ?? '',
   CLIENT_SECRET: process.env.MS_CLIENT_SECRET ?? '',
-  REDIRECT: 'http://localhost:3000/api/oauth/microsoft/callback',
+  REDIRECT: `http://localhost:${PORT}/api/oauth/microsoft/callback`,
 };
 
 export const ATLAS = {
@@ -46,6 +46,13 @@ export const ERROR: httpErrors = {
     code: 'invalid-MIME',
     message: 'Invalid MIME type',
     details: 'The provided MIME type is not valid. Please provide a valid MIME type in the request',
+    status: 400,
+  },
+
+  expiredToken: {
+    code: 'expired-token',
+    message: 'expired OAuth token',
+    details: 'your OAuth token has expired, please try again',
     status: 400,
   },
 
@@ -102,7 +109,7 @@ export const ERROR: httpErrors = {
     code: 'invalid-password',
     message: 'Invalid password',
     details:
-      'The provided password is not valid. Please provide a valid password with at least 8 characters, including at least one uppercase letter, one lowercase letter, and one numeric digit.',
+      'You have provided an invalid password, please check it again',
     status: 400,
   },
 

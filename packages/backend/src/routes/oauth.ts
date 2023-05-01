@@ -11,18 +11,21 @@ import { User } from '../types';
 import UserRepo from '../models/UserRepository';
 import * as common from '@propelr/common';
 
+import qs from "node:querystring";
+
+import fetch from "node-fetch";
+
 const USER_DB = new UserRepo();
 
 passport.use(
   new GoogleStrategy(
     {
-      clientID: GOOGLE_AUTH.CLIENT_ID,
+      clientID:     GOOGLE_AUTH.CLIENT_ID,
       clientSecret: GOOGLE_AUTH.CLIENT_SECRET,
-      callbackURL: GOOGLE_AUTH.REDIRECT,
+      callbackURL:  GOOGLE_AUTH.REDIRECT,
     },
-    (_a, _b, profile, done) => {
+    (access, refresh, profile, done) => {
       return done(null, profile);
-      // return done(null, profile);
     },
   ),
 );
@@ -37,13 +40,11 @@ passport.use(
     },
     function (accessToken: any, refreshToken: any, profile: any, done: any) {
       return done(null, profile);
-      // return done(null, profile);
     },
   ),
 );
 
 export async function routeOAuth(ctx: Koa.Context, next: Koa.Next): Promise<void> {
-  console.log(ctx.path.split('/'));
   const params = ctx.path.split('/');
   const scheme = params.find((e) => OAuthSchemes[e]);
 
@@ -52,16 +53,12 @@ export async function routeOAuth(ctx: Koa.Context, next: Koa.Next): Promise<void
     return;
   }
 
-  const state = Math.random().toString(36).substring(2, 15);
-
   const authScheme: {
     provider: string;
     scope: Array<string>;
-    state: string;
   } = {
     provider: '',
     scope: [],
-    state: state,
   };
 
   switch (scheme) {
@@ -77,7 +74,6 @@ export async function routeOAuth(ctx: Koa.Context, next: Koa.Next): Promise<void
 
   await passport.authenticate(authScheme.provider, {
     scope: authScheme.scope,
-    state: state,
   })(ctx, next);
 }
 
@@ -115,7 +111,18 @@ export async function routeOAuthCallback(ctx: Koa.Context, next: Koa.Next): Prom
   const foundUser = await USER_DB.getUserByEmail(user?.email || user?.userPrincipalName);
 
   if (foundUser) {
-    sendErrorResponse(ctx, ERROR.userAlreadyExists);
+    const token = common.jwt.sign({
+      id: foundUser.id,
+      email: foundUser.email,
+    }, JWT_SECRET);
+
+    sendJSONResponse(ctx, {
+      success: {
+        message: 'User found',
+        token,
+      },
+      status: 200,
+    });
     return;
   }
 
@@ -146,4 +153,124 @@ export async function routeOAuthCallback(ctx: Koa.Context, next: Koa.Next): Prom
     },
     status: 200,
   });
+}
+
+async function getGoogleEmailFromToken(token: string): Promise<string | null> {
+  const userProfileEndpoint = 'https://www.googleapis.com/oauth2/v3/userinfo';
+  const response = await fetch(userProfileEndpoint, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  const data = await response.json();
+  return data?.email;
+}
+
+async function getGoogleAuthTokenFromCode(code: string) {
+  const requestBody = JSON.stringify({
+    code: code,
+    client_id:     GOOGLE_AUTH.CLIENT_ID,
+    client_secret: GOOGLE_AUTH.CLIENT_SECRET,
+    redirect_uri:  "http://localhost:3000/register",
+    grant_type: 'authorization_code',
+  });
+
+  let tokenEndpoint = `https://oauth2.googleapis.com/token`;
+
+  const response = await fetch(tokenEndpoint, {
+    method: "POST",
+    body: requestBody,
+  });
+  const data = await response.json();
+  return data.access_token;
+}
+
+async function findUserOrCreateUserToken(email: string): Promise<string | null> {
+  await USER_DB.init();
+
+  const foundUser = await USER_DB.getUserByEmail(email);
+
+  if (foundUser) {
+    const token = common.jwt.sign({
+      id: foundUser.id,
+      email: foundUser.email,
+    }, JWT_SECRET);
+
+    return token;
+  }
+
+  const userToPush: User = {
+    id: generateId(16),
+    email: email,
+    password: generateId(16), // TODO: find a better way to generate password
+  };
+
+  const pushedUser = await USER_DB.pushUser(userToPush);
+
+  if (!pushedUser) return null;
+  
+  const jwt_payload: any = {
+    id: pushedUser.id,
+    email: pushedUser.email,
+  };
+
+  const token = common.jwt.sign(jwt_payload, JWT_SECRET);
+  return token;
+}
+
+export async function routeOAuthToken(ctx: Koa.Context, next: Koa.Next) {
+  const params = ctx.path.split('/');
+  const scheme = params.find((e) => OAuthSchemes[e]);
+
+  if (!scheme) {
+    sendErrorResponse(ctx, ERROR.oAuthSchemeNotFound);
+    return;
+  }
+
+  const authCode = ctx.URL.searchParams.get("code");
+
+  if (!authCode) {
+    sendErrorResponse(ctx, ERROR.badOAuthCallback);
+    return;
+  }
+
+  const authScheme: {
+    provider: string;
+    scope: Array<string>;
+  } = {
+    provider: '',
+    scope: [],
+  };
+
+  switch (scheme) {
+    case 'google':
+      const authToken = await getGoogleAuthTokenFromCode(authCode);
+      if (!authToken) {
+        sendErrorResponse(ctx, ERROR.expiredToken);
+        break;
+      }
+      const email = await getGoogleEmailFromToken(authToken);
+
+      if (!email) {
+        sendErrorResponse(ctx, ERROR.internalError);
+        return;
+      }
+
+      const jwtToken = await findUserOrCreateUserToken(email);
+
+      if (!jwtToken) {
+        sendErrorResponse(ctx, ERROR.internalError);
+        return;
+      }
+
+      sendJSONResponse(ctx, {
+        message: "Success",
+        token: jwtToken,
+        status: 200
+      }, 200) 
+      break;
+    case 'microsoft':
+      authScheme.provider = 'microsoft';
+      authScheme.scope = ['User.Read'];
+      break;
+  }
 }

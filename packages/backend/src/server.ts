@@ -1,8 +1,9 @@
 import Koa from 'koa';
 import bodyParser from 'koa-bodyparser';
 import passport from 'koa-passport';
+import koaCors from "@koa/cors";
 
-import { routeOAuth, routeOAuthCallback } from './routes/oauth';
+import { routeOAuth, routeOAuthCallback, routeOAuthToken } from './routes/oauth';
 
 import routeRegister from './routes/register';
 import routeLogin from './routes/login';
@@ -27,6 +28,8 @@ import {
 
 const app = new Koa();
 
+app.use(koaCors());
+
 import * as utils from './common/utils';
 import { ERROR } from './common/const';
 
@@ -42,7 +45,8 @@ const ROUTES = {
   '/api/users/register': /^\/api\/users\/register\/?$/,
   '/api/users/login': /^\/api\/users\/login\/?$/,
   '/api/flows': /^\/api\/flows\/?$/,
-  '/api/oauth/:id/callback': /^\/api\/oauth\/[a-zA-Z0-9_-]+\/callback\/?$/,
+  '/api/oauth/:id/callback': /^\/api\/oauth\/[^/?]+\/callback(\?.*)?$/,
+  '/api/oauth/:id/token': /^\/api\/oauth\/[^/?]+\/token(\?.*)?$/,
   '/api/oauth/:id': /^\/api\/oauth\/[a-zA-Z0-9_-]+\/?$/,
   '/api/flows/:id': /^\/api\/flows\/[a-zA-Z0-9_-]+\/?$/,
   "/api/flows/:id/execute": /^\/api\/flows\/[a-zA-Z0-9_-]+\/execute\/?$/,
@@ -92,9 +96,10 @@ app.use(async (ctx: Koa.Context, next) => {
     await routeUsersDelete(ctx);
   } else if (ctx.url.match(ROUTES['/api/oauth/:id/callback']) && ctx.method === 'GET') {
     await routeOAuthCallback(ctx, next);
-  }  else if (ctx.url.match(ROUTES['/api/oauth/:id']) && ctx.method === "GET") {
-    await routeOAuth(ctx, next);
-  }
+  } else if (ctx.url.match(ROUTES['/api/oauth/:id/token']) && ctx.method === "GET") {
+    await routeOAuthToken(ctx, next);
+  } else if (ctx.url.match(ROUTES['/api/oauth/:id']) && ctx.method === "GET") {
+    await routeOAuth(ctx, next); }
   else if (ctx.url.match(ROUTES['/api/developers/keys']) && ctx.method === "POST") {
     await createKey(ctx);
   } else {
