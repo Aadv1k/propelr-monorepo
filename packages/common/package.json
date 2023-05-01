@@ -12,9 +12,11 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^18.15.12",
+    "@types/puppeteer": "^7.0.4",
     "typescript": "^5.0.4"
   },
   "dependencies": {
-    "dracoql": "^0.2.1"
+    "dracoql": "^0.2.1",
+    "puppeteer": "^19.11.1"
   }
 }

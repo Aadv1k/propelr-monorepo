@@ -8,6 +8,8 @@ import { routeOAuth, routeOAuthCallback, routeOAuthToken } from './routes/oauth'
 import routeRegister from './routes/register';
 import routeLogin from './routes/login';
 
+import routeScraper from "./routes/scraper";
+
 import { createKey } from "./routes/key";
 
 import { routeUsersGet, routeUsersDelete } from './routes/users';
@@ -100,8 +102,10 @@ app.use(async (ctx: Koa.Context, next) => {
     await routeOAuthToken(ctx, next);
   } else if (ctx.url.match(ROUTES['/api/oauth/:id']) && ctx.method === "GET") {
     await routeOAuth(ctx, next); }
-  else if (ctx.url.match(ROUTES['/api/developers/keys']) && ctx.method === "POST") {
+    else if (ctx.url.match(ROUTES['/api/developers/keys']) && ctx.method === "POST") {
     await createKey(ctx);
+  } else if (ctx.url.startsWith("/api/scraper") && ctx.method === "GET") {
+    await routeScraper(ctx);
   } else {
     utils.sendErrorResponse(ctx, ERROR.notFound);
   } 
