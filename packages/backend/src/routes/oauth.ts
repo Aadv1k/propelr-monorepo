@@ -165,12 +165,12 @@ async function getGoogleEmailFromToken(token: string): Promise<string | null> {
   return data?.email;
 }
 
-async function getGoogleAuthTokenFromCode(code: string) {
+async function getGoogleAuthTokenFromCode(code: string, redirect?: string) {
   const requestBody = JSON.stringify({
     code: code,
     client_id:     GOOGLE_AUTH.CLIENT_ID,
     client_secret: GOOGLE_AUTH.CLIENT_SECRET,
-    redirect_uri:  "http://localhost:3000/register",
+    redirect_uri:  redirect,
     grant_type: 'authorization_code',
   });
 
@@ -227,8 +227,9 @@ export async function routeOAuthToken(ctx: Koa.Context, next: Koa.Next) {
   }
 
   const authCode = ctx.URL.searchParams.get("code");
+  const redirectOrigin = ctx.URL.searchParams.get("redirect");
 
-  if (!authCode) {
+  if (!authCode || !redirectOrigin) {
     sendErrorResponse(ctx, ERROR.badOAuthCallback);
     return;
   }
@@ -243,7 +244,7 @@ export async function routeOAuthToken(ctx: Koa.Context, next: Koa.Next) {
 
   switch (scheme) {
     case 'google':
-      const authToken = await getGoogleAuthTokenFromCode(authCode);
+      const authToken = await getGoogleAuthTokenFromCode(authCode, redirectOrigin);
       if (!authToken) {
         sendErrorResponse(ctx, ERROR.expiredToken);
         break;
