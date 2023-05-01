@@ -1,4 +1,6 @@
 import globals from "@propelr/common/globals";
+import jwtDecode from "jwt-decode";
+
 import { Link as RouterLink } from "react-router-dom";
 import {
   Card,
@@ -17,10 +19,13 @@ import {
   Stack,
   Image,
 } from '@chakra-ui/react';
-import { FormControl, FormLabel, FormErrorMessage, Input, FormHelperText } from '@chakra-ui/react';
-import {useEffect, useState} from 'react';
 
-import { useLocation } from "react-router-dom";
+import { FormControl, FormLabel, FormErrorMessage, Input, FormHelperText } from '@chakra-ui/react';
+import {useEffect, useState, useContext} from 'react';
+
+import UserContext from "../context/UserContext";
+
+import { useLocation, useNavigate } from "react-router-dom";
 
 import imgMonkey2 from '../assets/dalle-monkey-2.png';
 import { useToast } from '@chakra-ui/react';
@@ -41,17 +46,20 @@ function objectToQueryString(obj: any) {
 export default function Login() {
   const location = useLocation();
   const toast = useToast();
+  const navigate = useNavigate();
 
-  const [isLoading, setLoading] = useState(false);
-
-  const [password, setPassword] = useState('');
-  const [repeatPassword, setRepeatPassword] = useState('');
-  const [passwordError, setPasswordError] = useState('');
-  const [matchError, setMatchError] = useState('');
+  const [globalUser, setGlobalUser] = useContext(UserContext);
 
   const [userLoading, setUserLoading] = useState(true);
+  const [isLoading, setLoading] = useState(false);
+
 
   useEffect(() => {
+    if (globalUser) {
+      navigate("/dashboard")
+      return;
+    };
+
     const oAuthParams = new URLSearchParams(location.search);
 
     if (!oAuthParams.get("code")) {
@@ -59,13 +67,15 @@ export default function Login() {
       return;
     };
 
+    navigate(location.pathname, {});
+
     oAuthParams.set("redirect", "http://localhost:3000/login");
 
     fetch(`http://localhost:4000/api/oauth/google/token?${objectToQueryString(Object.fromEntries(oAuthParams))}`)
       .then(res => res.json())
       .then(data => {
 
-        if (data.status !== 200) {
+       if (data.status !== 200) {
           toast({
             title: data.error.message,
             description: data.error.details,
@@ -75,7 +85,14 @@ export default function Login() {
             isClosable: true,
           });
         } else {
-          /* TODO: REDIRECT */
+          const parsedToken: any = jwtDecode(data.token);
+          setGlobalUser({
+            ...parsedToken,
+            token: data.token,
+          });
+          localStorage.setItem("propelrToken", data.token);
+          setLoading(false);
+          navigate("/dashboard");
         }
         setUserLoading(false);
       })
@@ -109,9 +126,10 @@ export default function Login() {
             isClosable: true,
           });
         } else {
-          /* TODO: REDIRECT */
+          setGlobalUser(jwtDecode(data.token));
+          setLoading(false);
+          navigate("/dashboard");
         }
-        setLoading(false);
       })
   }
 
@@ -207,7 +225,7 @@ export default function Login() {
           </Button>
 
         </Stack>
-        <Text mt={3} color="gray.600">Already a registered user? <RouterLink to="/login"><Link color="blue.100" textDecoration="underline">Login</Link></RouterLink ></Text>
+        <Text mt={3} color="gray.600">Don't have an account yet? <RouterLink to="/register"><Link color="blue.100" textDecoration="underline">Sign up</Link></RouterLink ></Text>
       </CardBody>
     </Card>
 
