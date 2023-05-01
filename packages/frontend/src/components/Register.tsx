@@ -1,8 +1,9 @@
-
+import globals from "@propelr/common/globals";
 import { Link as RouterLink } from "react-router-dom";
 import {
   Card,
   CardHeader,
+  Spinner,
   CardBody,
   CardFooter,
   Heading,
@@ -17,39 +18,154 @@ import {
   Image,
 } from '@chakra-ui/react';
 import { FormControl, FormLabel, FormErrorMessage, Input, FormHelperText } from '@chakra-ui/react';
-import React from 'react';
+import {useEffect, useState} from 'react';
+
+import { useLocation } from "react-router-dom";
 
 import imgMonkey2 from '../assets/dalle-monkey-2.png';
 import { useToast } from '@chakra-ui/react';
 
-const sampleRegisterData = JSON.stringify({
-  error: {
-    code: 'user-already-exists',
-    message: 'Registration Failed',
-    details: 'The user with the provided email already exists in the system.',
-  },
-  status: 400,
-});
+import InputPassword from "./chakra/InputPassword";
+
+function objectToQueryString(obj: any) {
+  const keyValuePairs = [];
+
+  for (const [key, value] of Object.entries(obj)) {
+    keyValuePairs.push(`${encodeURIComponent(key)}=${encodeURIComponent(value as string)}`);
+  }
+
+  return keyValuePairs.join('&');
+}
+
 
 export default function Register() {
-  const [password, setPassword] = React.useState('');
-  const [repPassword, setRepPassword] = React.useState('');
-  const [email, setEmail] = React.useState('');
-
-  const [isNotSamePassword, setNotSamePassword] = React.useState(false);
-  const [isBadPassword, setBadPassword] = React.useState(false);
-  const [isError, setError] = React.useState(false);
-  const [isLoading, setLoading] = React.useState(false);
+  const location = useLocation();
   const toast = useToast();
 
-  React.useEffect(() => {
-    setNotSamePassword(password !== repPassword);
-    setBadPassword(password.length < 8 && password !== '');
-    setError(isNotSamePassword || isBadPassword);
-  });
+  const [isError, setError] = useState(false);
+  const [isLoading, setLoading] = useState(false);
+
+  const [password, setPassword] = useState('');
+  const [repeatPassword, setRepeatPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [matchError, setMatchError] = useState('');
+
+  const [userLoading, setUserLoading] = useState(true);
+
+  useEffect(() => {
+    const oAuthParams = new URLSearchParams(location.search);
+
+    if (!oAuthParams.get("code")) {
+      setUserLoading(false);
+      return;
+    };
+
+    oAuthParams.set("redirect", "http://localhost:3000/register");
+
+    fetch(`http://localhost:4000/api/oauth/google/token?${objectToQueryString(Object.fromEntries(oAuthParams))}`)
+      .then(res => res.json())
+      .then(data => {
+
+        if (data.status !== 200) {
+          toast({
+            title: data.error.message,
+            description: data.error.details,
+            position: 'top-right',
+            status: 'error',
+            duration: 2000,
+            isClosable: true,
+          });
+        } else {
+          /* TODO: REDIRECT */
+        }
+        setUserLoading(false);
+      })
+  }, []);
+
+  const handlePasswordChange = (event: any) => {
+    const newPassword = event.target.value;
+    setPassword(newPassword);
+    if (newPassword.length < 8) {
+      setPasswordError('Password must be 8 characters long.');
+      setError(true);
+    } else {
+      setPasswordError('');
+      setError(false);
+    }
+  };
+
+  const handleRepeatPasswordChange = (event: any) => {
+    const newRepeatPassword = event.target.value;
+    setRepeatPassword(newRepeatPassword);
+    if (newRepeatPassword !== password) {
+      setMatchError('Passwords do not match.');
+      setError(true);
+    } else {
+      setMatchError('');
+      setError(false);
+    }
+  };
+
+  const handleSubmit = (e: any) => {
+    e.preventDefault();
+    const form = new FormData(e.target as HTMLFormElement);
+    const formProps = Object.fromEntries(form);
+    setLoading(true);
+    fetch("http://localhost:4000/api/users/register", {
+      method: "POST",
+      headers: {
+        "Content-type": "application/json"
+      },
+      body: JSON.stringify({
+        email: formProps.email,
+        password: formProps.password
+      })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status !== 200)  {
+          toast({
+            title: data.error.message,
+            description: data.error.details,
+            position: 'top-right',
+            status: 'error',
+            duration: 2000,
+            isClosable: true,
+          });
+        } else {
+          /* TODO: REDIRECT */
+        }
+        setLoading(false);
+      })
+  }
+
+  const handleOAuthClick = (e: any) => {
+    const provider = e.currentTarget.getAttribute("data-provider");
+    if (!["microsoft", "google"].includes(provider)) {
+      throw new Error("Unknown provider, please refresh");
+    }
+
+    switch (provider) {
+      case "google":
+        const params = objectToQueryString({
+          client_id: globals.GOOGLE_AUTH.CLIENT_ID,
+          redirect_uri: "http://localhost:3000/register",
+          scope: "email profile",
+          response_type: "code"
+        })
+        const url = `https://accounts.google.com/o/oauth2/auth?${params}`;
+        window.location.href = url;
+        break;
+      default: 
+        console.log("you got bamboozled");
+    }
+      
+  }
+
+  if (!userLoading) {
 
   return (
-    <Card maxW={600} w="90%" mx="auto" my={50}>
+    <Card h={600} maxW={600} w="90%" mx="auto" my={50}>
       <CardHeader>
         <Heading size="xl" fontFamily="heading" color="blue.200" fontWeight={800} textAlign="left">
           Sign Up
@@ -62,6 +178,9 @@ export default function Register() {
             leftIcon={<i style={{ fontSize: '1.2rem' }} className="bi bi-microsoft"></i>}
             variant="solid"
             w="full"
+            data-provider="microsoft"
+            onClick={handleOAuthClick}
+            isDisabled={isLoading}
           >
             Sign up with microsoft
           </Button>
@@ -70,6 +189,9 @@ export default function Register() {
             leftIcon={<i style={{ fontSize: '1.2rem' }} className="bi bi-google"></i>}
             variant="solid"
             w="full"
+            data-provider="google"
+            onClick={handleOAuthClick}
+            isDisabled={isLoading}
           >
             Sign up with google
           </Button>
@@ -87,30 +209,7 @@ export default function Register() {
           as="form"
           my={2}
           gap={1}
-          onSubmit={(e) => {
-            e.preventDefault();
-            const form = new FormData(e.target as HTMLFormElement);
-            const formProps = Object.fromEntries(form);
-
-            setLoading(true);
-            setTimeout(() => {
-              const data = JSON.parse(sampleRegisterData);
-
-              if (data.status !== 200) {
-                toast({
-                  title: data.error.message,
-                  description: data.error.details,
-                  position: 'top-right',
-                  status: 'error',
-                  duration: 2000,
-                  isClosable: true,
-                });
-              } else {
-                console.log('OK');
-              }
-              setLoading(false);
-            }, 1000);
-          }}
+          onSubmit={handleSubmit}
         >
           <FormControl>
             <FormLabel>Email</FormLabel>
@@ -119,14 +218,8 @@ export default function Register() {
 
           <FormControl>
             <FormLabel>Password</FormLabel>
-            <Input
-              type="password"
-              name="password"
-              placeholder="Password"
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            {isBadPassword && (
+            <InputPassword name="password" onChange={handlePasswordChange} required/>
+            {passwordError && (
               <Text textAlign="left" color="red.600">
                 Need a stronger password
               </Text>
@@ -138,10 +231,10 @@ export default function Register() {
             <Input
               type="password"
               placeholder="Confirm password"
-              onChange={(e) => setRepPassword(e.target.value)}
+              onChange={handleRepeatPasswordChange}
               required
             />
-            {isNotSamePassword && (
+            {matchError && (
               <Text textAlign="left" color="red.600">
                 Passwords don't match
               </Text>
@@ -162,5 +255,14 @@ export default function Register() {
         <Text mt={3} color="gray.600">Already a registered user? <RouterLink to="/login"><Link color="blue.100" textDecoration="underline">Login</Link></RouterLink ></Text>
       </CardBody>
     </Card>
+
   );
+
+  } else {
+    return (
+      <Card maxW={600} w="90%" mx="auto" my={50} h={600} display="flex" alignItems="center" justifyContent="center">
+      <Spinner size="xl" color="blue.100" />
+    </Card>
+    )
+  }
 }

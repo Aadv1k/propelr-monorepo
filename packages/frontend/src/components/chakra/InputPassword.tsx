@@ -1,7 +1,7 @@
 import { Input, InputGroup, InputRightElement, Button} from "@chakra-ui/react";
 import React from "react";
 
-export default function InputPassword() {
+export default function InputPassword(props: any) {
   const [show, setShow] = React.useState(false)
   const handleClick = () => setShow(!show)
 
@@ -11,6 +11,7 @@ export default function InputPassword() {
         pr='4.5rem'
         type={show ? 'text' : 'password'}
         placeholder='Password'
+        {...props}
       />
       <InputRightElement width='4.5rem'>
         <Button h='1.75rem' size='sm' variant="outline" onClick={handleClick}>

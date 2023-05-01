@@ -1,6 +1,9 @@
+import globals from "@propelr/common/globals";
+import { Link as RouterLink } from "react-router-dom";
 import {
   Card,
   CardHeader,
+  Spinner,
   CardBody,
   CardFooter,
   Heading,
@@ -15,27 +18,68 @@ import {
   Image,
 } from '@chakra-ui/react';
 import { FormControl, FormLabel, FormErrorMessage, Input, FormHelperText } from '@chakra-ui/react';
-import React from 'react';
+import {useEffect, useState} from 'react';
 
-import InputPassword from "./chakra/InputPassword";
+import { useLocation } from "react-router-dom";
 
 import imgMonkey2 from '../assets/dalle-monkey-2.png';
 import { useToast } from '@chakra-ui/react';
 
-import { Link as RouterLink } from "react-router-dom";
+import InputPassword from "./chakra/InputPassword";
 
-const sampleRegisterData = JSON.stringify({
-  error: {
-    code: 'user-already-exists',
-    message: 'Registration Failed',
-    details: 'The user with the provided email already exists in the system.',
-  },
-  status: 400,
-});
+function objectToQueryString(obj: any) {
+  const keyValuePairs = [];
 
-export default function Register() {
-  const [isLoading, setLoading] = React.useState(false);
+  for (const [key, value] of Object.entries(obj)) {
+    keyValuePairs.push(`${encodeURIComponent(key)}=${encodeURIComponent(value as string)}`);
+  }
+
+  return keyValuePairs.join('&');
+}
+
+
+export default function Login() {
+  const location = useLocation();
   const toast = useToast();
+
+  const [isLoading, setLoading] = useState(false);
+
+  const [password, setPassword] = useState('');
+  const [repeatPassword, setRepeatPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [matchError, setMatchError] = useState('');
+
+  const [userLoading, setUserLoading] = useState(true);
+
+  useEffect(() => {
+    const oAuthParams = new URLSearchParams(location.search);
+
+    if (!oAuthParams.get("code")) {
+      setUserLoading(false);
+      return;
+    };
+
+    oAuthParams.set("redirect", "http://localhost:3000/login");
+
+    fetch(`http://localhost:4000/api/oauth/google/token?${objectToQueryString(Object.fromEntries(oAuthParams))}`)
+      .then(res => res.json())
+      .then(data => {
+
+        if (data.status !== 200) {
+          toast({
+            title: data.error.message,
+            description: data.error.details,
+            position: 'top-right',
+            status: 'error',
+            duration: 2000,
+            isClosable: true,
+          });
+        } else {
+          /* TODO: REDIRECT */
+        }
+        setUserLoading(false);
+      })
+  }, []);
 
   const handleSubmit = (e: any) => {
     e.preventDefault();
@@ -65,17 +109,42 @@ export default function Register() {
             isClosable: true,
           });
         } else {
-          console.log(data);
+          /* TODO: REDIRECT */
         }
         setLoading(false);
       })
   }
 
+  const handleOAuthClick = (e: any) => {
+    const provider = e.currentTarget.getAttribute("data-provider");
+    if (!["microsoft", "google"].includes(provider)) {
+      throw new Error("Unknown provider, please refresh");
+    }
+
+    switch (provider) {
+      case "google":
+        const params = objectToQueryString({
+          client_id: globals.GOOGLE_AUTH.CLIENT_ID,
+          redirect_uri: "http://localhost:3000/login",
+          scope: "email profile",
+          response_type: "code"
+        })
+        const url = `https://accounts.google.com/o/oauth2/auth?${params}`;
+        window.location.href = url;
+        break;
+      default: 
+        console.log("you got bamboozled");
+    }
+      
+  }
+
+  if (!userLoading) {
+
   return (
-    <Card maxW={600} w="90%" mx="auto" my={50}>
+    <Card h={550} maxW={600} w="90%" mx="auto" my={50}>
       <CardHeader>
         <Heading size="xl" fontFamily="heading" color="blue.200" fontWeight={800} textAlign="left">
-          Login
+          Log in
         </Heading>
       </CardHeader>
 
@@ -85,6 +154,9 @@ export default function Register() {
             leftIcon={<i style={{ fontSize: '1.2rem' }} className="bi bi-microsoft"></i>}
             variant="solid"
             w="full"
+            data-provider="microsoft"
+            onClick={handleOAuthClick}
+            isDisabled={isLoading}
           >
             Login with microsoft
           </Button>
@@ -93,6 +165,9 @@ export default function Register() {
             leftIcon={<i style={{ fontSize: '1.2rem' }} className="bi bi-google"></i>}
             variant="solid"
             w="full"
+            data-provider="google"
+            onClick={handleOAuthClick}
+            isDisabled={isLoading}
           >
             Login with google
           </Button>
@@ -119,7 +194,7 @@ export default function Register() {
 
           <FormControl>
             <FormLabel>Password</FormLabel>
-            <InputPassword />
+            <InputPassword name="password" required/>
           </FormControl>
 
           <Button
@@ -130,10 +205,18 @@ export default function Register() {
           >
             Submit
           </Button>
+
         </Stack>
-          <Text mt={3} color="gray.600">Don't have an account yet? <RouterLink to="/register"><Link color="blue.100" textDecoration="underline">Sign up</Link> </RouterLink >
-        </Text>
+        <Text mt={3} color="gray.600">Already a registered user? <RouterLink to="/login"><Link color="blue.100" textDecoration="underline">Login</Link></RouterLink ></Text>
       </CardBody>
     </Card>
+
   );
+  } else {
+    return (
+      <Card maxW={600} w="90%" mx="auto" my={50} h={550} display="flex" alignItems="center" justifyContent="center">
+      <Spinner size="xl" color="blue.100" />
+    </Card>
+    )
+  }
 }
