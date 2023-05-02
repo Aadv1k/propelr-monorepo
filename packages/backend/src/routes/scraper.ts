@@ -33,9 +33,7 @@ export default async function (ctx: Koa.Context) {
     }
   }
 
-
-  const jwtToken = verifyAndparseJwtTokenFromHeader(ctx);
-
+  const jwtToken = await verifyAndparseJwtTokenFromHeader(ctx);
   if (!jwtToken) {
     utils.sendErrorResponse(ctx, ERROR.unauthorized);
     return;
