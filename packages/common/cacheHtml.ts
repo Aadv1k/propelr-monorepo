@@ -39,6 +39,7 @@ export default async function fetchAndCacheHtml(url: string, timeout?: number): 
   const cacheTarget = path.join(CACHE_DIR, `${hashedUrl}.json`);
 
   if (existsSync(cacheTarget)) {
+
     const data = JSON.parse(readFileSync(cacheTarget, "utf-8"));
     if ((Date.now() - data.cachedAt) < (timeout ?? TIMEOUT_IN_MS)) {
       return {
