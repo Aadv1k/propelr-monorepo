@@ -2,10 +2,13 @@ import { useContext, useState, useEffect, useRef } from 'react';
 import UserContext from '../context/UserContext';
 import unique from 'unique-selector';
 
+import TEMP from "./TEST.json";
+
 import { Link as RouterLink, useNavigate} from 'react-router-dom';
 
 import {
   Input,
+  Code,
   Text,
   Spinner,
   ButtonGroup,
@@ -91,29 +94,35 @@ function AskForURL({url, setUrl}: {url: string, setUrl: any}): any {
   );
 }
 
-function getSelectorForElement(el: any) {
-  const selectorParts = [];
-  while (el && el.tagName !== "BODY") {
-    const index = Array.from(el.parentNode.children).indexOf(el) + 1;
-    const tag = el.tagName.toLowerCase();
-    selectorParts.unshift(`${tag}:nth-child(${index})`);
-    el = el.parentNode;
-  }
-  return selectorParts.join(" > ");
-}
 
 
-function BrowserPane({url}: {url: string}) {
+function BrowserPane({
+  url,
+  selectedHtml,
+  setSelectedHtml,
+}: {
+  url: string,
+  selectedHtml: Array<string>,
+  setSelectedHtml: any
+}) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [html, setHtml] = useState("");
+  const [globalUser, _] = useContext(UserContext);
 
   const paneRef = useRef(null);
 
-  const reFetchHtml = () => {
+  const fetchHtml = () => {
     setLoading(true);
+    setHtml(TEMP.data.content);
+    setLoading(false);
 
-    fetch(`http://localhost:4000/api/scraper?url=${encodeURIComponent(url)}`)
+    /*
+    fetch(`http://localhost:4000/api/scraper?url=${encodeURIComponent(url)}`, {
+      headers: {
+        Authorization: `Bearer ${globalUser.token}`,
+      }
+    })
       .then(res => res.json())
       .then(data => {
         if (data.status !== 200) {
@@ -123,64 +132,60 @@ function BrowserPane({url}: {url: string}) {
         }
         setLoading(false)
       })
-
+     */
   }
 
   const handlePaneClick = (e: any) => {
     e.preventDefault();
-    let target = paneRef.current as any;
-
     const selector = unique(e.target);
     let doc = document.querySelector(`${selector}`) as any;
-    console.log(doc);
-    doc.style.outline = "10px solid red";
 
-    //target.querySelector().style = {};
+    console.log(doc.getAttribute("propelr-selected-element"));
+
+    if (!doc.getAttribute("propelr-selected-element")) {
+      doc.setAttribute("propelr-selected-element", "true");
+      doc.style.outline = "10px solid red";
+      setSelectedHtml([...selectedHtml, selector]);
+    } else {
+
+
+      setSelectedHtml(selectedHtml.filter(e => e !== selector));
+
+      doc.removeAttribute("propelr-selected-element");
+      doc.removeAttribute("style");
+    }
   }
 
-
   useEffect(() => {
-
-    fetch(`http://localhost:4000/api/scraper?url=${encodeURIComponent(url)}`)
-    .then(res => res.json())
-    .then(data => {
-      if (data.status !== 200) {
-        setError(true);
-      }  else {
-        setHtml(data.data.content);
-      }
-      setLoading(false)
-    })
-
-  }, [])
+    fetchHtml();
+  }, [globalUser, html])
 
   return (
+    <Box w="100%" maxW={1200} h="100vh" overflow="hidden" border="1px solid black">
 
-    <Box w="80%" maxW={900} h="100vh" overflow="scroll" border="1px solid black">
-
-      <Flex w="full" gap={4} h={20} overflow="hidden" borderBottom="1px solid black" bg="gray.200" py={4} px={2} alignItems="center" justifyContent="space-between">
-      <Flex gap={1} h="full">
-        <RouterLink to="/dashboard" style={{height: "100%"}}>
-          <Button as="a"  color="gray.600" bg="gray.300" h="full" aspectRatio="1">
-            <i className="bi bi-arrow-left" style={{ fontSize: '1.3rem' }}></i>
+      <Flex w="full" gap={2} h={20} overflow="hidden" borderBottom="1px solid black" bg="gray.200" py={4} px={2} alignItems="center" justifyContent="space-between">
+      <Flex gap={1} h="full" alignItems="center">
+        <RouterLink to="/dashboard">
+          <Button as="a" color="gray.600" variant="link">
+            <i className="bi bi-arrow-left" style={{ fontSize: '1.4rem' }}></i>
           </Button>
         </RouterLink>
-          <Button onClick={reFetchHtml} variant="link" color="gray.600" bg="gray.300" h="full" aspectRatio="1">
-            <i className="bi bi-arrow-clockwise" style={{ fontSize: '1.3rem' }}></i>
+          <Button onClick={fetchHtml} variant="link" color="gray.600" style={{
+              backgroundColor: "#d1d5db !important",
+            }}>
+            <i className="bi bi-arrow-clockwise" style={{ fontSize: '1.4rem' }}></i>
           </Button>
       </Flex>
-
-        <Text bg="gray.300" color="gray.600" display="flex" justifyContent="center" alignItems="center" h="full" rounded="md" fontSize="lg" px={4} flex="100%">{url}</Text>
+        <Text bg="gray.300"  m="0" color="gray.600" display="flex" justifyContent="center" alignItems="center" h="full" rounded="md" fontSize={{base: "md", md: "lg"}} px={4} flex="100%">{url}</Text>
       </Flex>
 
-
-      <Box h="full" w="full" display="grid" placeItems="center" maxW="full" overflow="scroll">
+      <Box h="full" w="full" overflow="scroll">
         {
           loading ? (
-            <Spinner size="xl" color="blue.100" /> 
+            <Spinner size="xl" color="blue.100"  mt="20%" /> 
           ) : (
 
-            <div onClick={handlePaneClick} ref={paneRef} dangerouslySetInnerHTML={{__html: html}}></div>
+            <div onClick={handlePaneClick} ref={paneRef} dangerouslySetInnerHTML={{__html: html}} style={{ width: "100%", }}></div>
 
           )
         }
@@ -190,11 +195,35 @@ function BrowserPane({url}: {url: string}) {
 
 }
 
-function ControlPanel() {}
+function ControlPanel({selectedHtml}: {
+  selectedHtml: Array<string>
+}) {
+  return (
+    <Box position="absolute"  w="100%" h={250} bg="gray.200" bottom="0"  zIndex={9999} sx={{
+        boxShadow: "rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px"
+      }}>
+
+      <Flex flexDirection="column" w="full">
+        {selectedHtml.map(el => {
+          return (
+            <Box py={2} w="full">
+              <Code>
+                {el}
+              </Code>
+            </Box>
+          )
+        })}
+      </Flex>
+
+    </Box>
+  )
+}
 
 export default function DashboardCreate() {
   const [globalUser, setGlobalUser] = useContext(UserContext);
-  const [siteUrl, setSiteUrl] = useState("https://cnet.com");
+  const [siteUrl, setSiteUrl] = useState("https://bloomberg.com");
+  const  [selectedHtml, setSelectedHtml] = useState([]);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -210,14 +239,19 @@ export default function DashboardCreate() {
   }, [globalUser]);
 
   return (
-    <>
+    <Box w="full" minH="100vh" position="relative">
     {!siteUrl ? 
       (
         <AskForURL url={siteUrl} setUrl={setSiteUrl}/>
       ) : (
-        <BrowserPane url={siteUrl} />
+        <>
+        <BrowserPane 
+          url={siteUrl} 
+          selectedHtml={selectedHtml} setSelectedHtml={setSelectedHtml}/>
+          <ControlPanel selectedHtml={selectedHtml}/>
+          </>
       )
     }
-      </>
+      </Box>
   )
 }

@@ -74,7 +74,7 @@ function FlowList(props: any) {
     <VStack>
       {props.flows.map((flow: any) => {
         return (
-          <Flex  flexDirection={{base: "column", md: "row"}} gap={2} h={{base: "auto", md: 20}} w="full" justifyContent="space-between" px={2} py={4} >
+          <Flex flexDirection={{base: "column", md: "row"}} gap={2} h={{base: "auto", md: 20}} w="full" justifyContent="space-between" px={2} py={4} >
             <Flex flexDirection="column" alignSelf={{base: "flex-start", md: "center"}}>
               <Heading
                 textAlign="left"
@@ -191,7 +191,7 @@ export default function Dashboard() {
   }, [globalUser]);
 
   return (
-    <Box w="full" minH="100vh" py={6} px={8}>
+    <Box w="full" maxW={1400} mx="auto" minH="100vh" py={6} px={8}>
       <Flex alignItems="center" justifyContent="space-between" p={4}>
         <Flex gap={2}>
           <Avatar name="Dan Abrahmov" src="https://bit.ly/dan-abramov" />
@@ -209,7 +209,7 @@ export default function Dashboard() {
         </Button>
       </Flex>
 
-      <Box my={4}>
+      <Box my={6}>
         <Heading
           as="h2"
           color="blue.200"
@@ -311,7 +311,7 @@ export default function Dashboard() {
         </Flex>
       </Box>
 
-      <Box my={4}>
+      <Box my={6}>
         <Heading
           as="h2"
           color="blue.200"
