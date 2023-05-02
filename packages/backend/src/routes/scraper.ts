@@ -19,11 +19,20 @@ async function verifyAndparseJwtTokenFromHeader(ctx: Koa.Context): Promise<any |
 
 export default async function (ctx: Koa.Context) {
   const targetUrl = ctx.URL.searchParams.get("url");
+  const timeout = ctx.URL.searchParams.get("timeout");
 
   if (!targetUrl) {
     utils.sendErrorResponse(ctx, ERROR.badInput);
     return;
   }
+
+  if (timeout) {
+    if (!Number(timeout)) {
+      utils.sendErrorResponse(ctx, ERROR.badInput);
+      return;
+    }
+  }
+
 
   const jwtToken = verifyAndparseJwtTokenFromHeader(ctx);
 
@@ -35,7 +44,7 @@ export default async function (ctx: Koa.Context) {
   let html: any;
 
   try {
-    html = await common.fetchAndCacheHtml(targetUrl);
+    html = await common.fetchAndCacheHtml(targetUrl, Number(timeout));
   } catch (error) {
     utils.sendErrorResponse(ctx, ERROR.badInput);
     return;
