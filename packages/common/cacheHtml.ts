@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 import path from "node:path";
 
 const CACHE_DIR = path.join(__dirname, "html-cache");
-const TIMEOUT_IN_MS = 6e5 // 10 minutes
+const TIMEOUT_IN_MS = 6e5 + (6e4 * 5) // 10 minutes + 5 minutes
 
 function cacheHtml(html: string, url: string): void {
   try {
@@ -31,21 +31,31 @@ async function fetchHtml(url: string): Promise<string> {
 }
 
 
-export default async function fetchAndCacheHtml(url: string): Promise<string> {
+export default async function fetchAndCacheHtml(url: string, timeout?: number): Promise<{
+  cachedAt: number,
+  content: string,
+}> {
   const hashedUrl = createHash("md5").update(url).digest("hex");
   const cacheTarget = path.join(CACHE_DIR, `${hashedUrl}.json`);
 
   if (existsSync(cacheTarget)) {
     const data = JSON.parse(readFileSync(cacheTarget, "utf-8"));
-    if ((Date.now() - data.cachedAt) < TIMEOUT_IN_MS) {
-      return data.content;
+    if ((Date.now() - data.cachedAt) < (timeout ?? TIMEOUT_IN_MS)) {
+      return {
+        cachedAt: data.cachedAt,
+        content: data.content
+      }
     }
   }
 
   const html = await fetchHtml(url);
   cacheHtml(html, url);
 
-  return html;
+  return {
+    cachedAt: Date.now(),
+    content: html
+  };
+
 }
 
 
