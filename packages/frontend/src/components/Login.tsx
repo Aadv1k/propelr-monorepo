@@ -55,13 +55,12 @@ export default function Login() {
 
 
   useEffect(() => {
-    if (globalUser) {
+    if (localStorage.getItem("propelrToken")) {
       navigate("/dashboard")
       return;
     };
 
     const oAuthParams = new URLSearchParams(location.search);
-
     if (!oAuthParams.get("code")) {
       setUserLoading(false);
       return;

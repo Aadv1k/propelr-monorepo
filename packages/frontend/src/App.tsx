@@ -12,6 +12,7 @@ import NotConvincedYet from './components/NotConvincedYet';
 import Footer from './components/Footer';
 
 import Dashboard from "./components/Dashboard";
+import DashboardCreate from "./components/DashboardCreate";
 
 
 import Register from './components/Register';
@@ -59,14 +60,15 @@ function App() {
 
   useEffect(() => {
     const jwtToken = localStorage.getItem("propelrToken")
-    const user: any = jwtDecode(jwtToken as string);
 
     if (jwtToken) {
+      const user: any = jwtDecode(jwtToken as string);
       setGlobalUser({
         ...user,
         token: jwtToken,
       });
-    }
+    } 
+
   }, [])
 
   return (
@@ -79,6 +81,7 @@ function App() {
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/dashboard/create" element={<DashboardCreate />} />
             </Routes>
           </BrowserRouter>
         </UserContext.Provider>
