@@ -126,9 +126,9 @@ export default function Login() {
           });
         } else {
           setGlobalUser(jwtDecode(data.token));
-          setLoading(false);
           navigate("/dashboard");
         }
+        setLoading(false);
       })
   }
 
