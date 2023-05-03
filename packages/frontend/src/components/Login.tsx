@@ -21,7 +21,7 @@ import {
 } from '@chakra-ui/react';
 
 import { FormControl, FormLabel, FormErrorMessage, Input, FormHelperText } from '@chakra-ui/react';
-import {useEffect, useState, useContext} from 'react';
+import { useEffect, useState, useContext } from 'react';
 
 import UserContext from "../context/UserContext";
 
