@@ -13,6 +13,7 @@ import {
   Avatar,
   Flex,
   VStack,
+  Tag,
   Badge,
   Text,
   Skeleton,
@@ -70,6 +71,24 @@ function timeSince(date: number): string {
 }
 
 function FlowList(props: any) {
+  const [globalUser, _] = useContext(UserContext);
+
+  const handleFlowExecute = (e: any) => {
+    const flowIdentity = e.currentTarget.getAttribute("data-identity");
+
+    fetch(`http://localhost:4000/api/flows/${flowIdentity}/execute`, {
+      method: "GET",
+      headers: {
+        Authorization: "Bearer " + globalUser.token,
+      }
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log(data);
+      })
+  }
+
+
   return (
     <VStack>
       {props.flows.map((flow: any) => {
@@ -83,8 +102,8 @@ function FlowList(props: any) {
                 fontFamily="body"
                 color="gray.700"
               >
-                {flow.userid}
-                <Badge colorScheme='green' fontSize="0.8rem" ml="1">{flow.schedule.type}</Badge>
+                {flow.id}
+                <Tag bg="#eee4c8" textTransform="capitalize" ml={2} mt={1}>{flow.schedule.type}</Tag>
               </Heading>
 
               <Text textAlign="left" color="gray.600">
@@ -111,6 +130,8 @@ function FlowList(props: any) {
                   aspectRatio="1"
                   h="100%"
                   bg="yellow.200"
+                  data-identity={flow.id} 
+                  onClick={handleFlowExecute}
                   color="black"
                   _hover={{ bg: 'yellow.100', color: 'black' }}
                   _focus={{ bg: 'yellow.100', color: 'black' }}
@@ -122,6 +143,8 @@ function FlowList(props: any) {
                 <Button
                   rounded="full"
                   aspectRatio="1"
+                  data-identity={flow.id} 
+                  onClick={handleFlowExecute}
                   h="100%"
                   bg="yellow.200"
                   color="black"
@@ -159,10 +182,7 @@ export default function Dashboard() {
     }
 
     setFlowsLoading(true);
-    setFlows([EX_DATA] as any);
-    setFlowsLoading(false);
 
-    /*
     try {
       fetch('http://localhost:4000/api/flows', {
         method: 'GET',
@@ -172,6 +192,7 @@ export default function Dashboard() {
       })
         .then((res) => res.json())
         .then((data) => {
+          console.log(data);
           setFlows(data.data);
           setFlowsLoading(false);
         })
@@ -187,7 +208,6 @@ export default function Dashboard() {
           setFlowsLoading(false);
         });
     } catch (error) {}
-     */
   }, [globalUser]);
 
   return (
@@ -262,8 +282,8 @@ export default function Dashboard() {
             <Skeleton
               h="70%"
               isLoaded={!flowsLoading}
-              endColor="#ffa177"
-              startColor="#ffc4ab"
+              startColor="#eee4c8"
+              endColor="#bbb39d"
               my={2}
             >
               <HStack>
@@ -294,8 +314,8 @@ export default function Dashboard() {
             <Skeleton
               h="100%"
               isLoaded={!flowsLoading}
-              startColor="#ffc4ab"
-              endColor="#ffa177"
+              startColor="#eee4c8"
+              endColor="#bbb39d"
               my={2}
             >
               <HStack>
@@ -322,7 +342,6 @@ export default function Dashboard() {
         >
           Flows
         </Heading>
-
         {flowsLoading ? (
           <Spinner size="xl" color="blue.100" />
         ) : (

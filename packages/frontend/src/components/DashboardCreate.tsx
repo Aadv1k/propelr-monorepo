@@ -2,13 +2,13 @@ import { useContext, useState, useEffect, useRef } from 'react';
 import UserContext from '../context/UserContext';
 import unique from 'unique-selector';
 
-import TEMP from './TEST.json';
 
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 import {
   Input,
   Code,
+  Progress,
   Text,
   Spinner,
   Wrap,
@@ -129,30 +129,48 @@ function BrowserPane({
   const [error, setError] = useState(false);
   const [html, setHtml] = useState('');
   const [globalUser, _] = useContext(UserContext);
+  const [progress, setProgress] = useState(0);
 
   const paneRef = useRef(null);
 
   const fetchHtml = () => {
     setLoading(true);
-    setHtml(TEMP.data.content);
-    setLoading(false);
+    setSelectedHtml({});
 
-    /*
-    fetch(`http://localhost:4000/api/scraper?url=${encodeURIComponent(url)}`, {
-      headers: {
-        Authorization: `Bearer ${globalUser.token}`,
+    const fetchData = async () => {
+      /*
+      const response = await fetch(`http://localhost:4000/api/scraper?url=${encodeURIComponent(url)}`, { headers: { Authorization: `Bearer ${globalUser.token}`, } })
+      const data = await response.json();
+      if (data.status !== 200) {
+        setError(true);
+      }  else {
+        setHtml(data.data.content);
       }
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.status !== 200) {
-          setError(true);
-        }  else {
-          setHtml(data.data.content);
+       */
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', `http://localhost:4000/api/scraper?url=${encodeURIComponent(url)}`, true);
+      xhr.setRequestHeader('Authorization', `Bearer ${globalUser.token}`)
+
+      xhr.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percentComplete = event.loaded / event.total * 100;
+          console.log(Math.floor(percentComplete));
+          setProgress(Math.floor(percentComplete));
         }
-        setLoading(false)
-      })
-     */
+      };
+
+      xhr.onload = () => {
+        const data = JSON.parse(xhr.responseText);
+        setLoading(false);
+        setHtml(data.data.content);
+      };
+
+      xhr.send();
+    } 
+
+
+    fetchData();
   };
 
   const handlePaneClick = (e: any) => {
@@ -167,10 +185,11 @@ function BrowserPane({
       blob[selector] = doc.innerText || doc.src || doc.innerHTML;
 
       doc.style.outline = '10px solid red';
-      setSelectedHtml({...selectedHtml, ...blob});
+      setSelectedHtml({ ...selectedHtml, ...blob });
     } else {
-      delete selectedHtml[selector as any]
-      setSelectedHtml(selectedHtml);
+      let temp = {...selectedHtml};
+      delete temp[selector as any];
+      setSelectedHtml(temp);
       doc.removeAttribute('propelr-selected-element');
       doc.removeAttribute('style');
     }
@@ -178,10 +197,10 @@ function BrowserPane({
 
   useEffect(() => {
     fetchHtml();
-  }, [globalUser, html]);
+  }, [globalUser]);
 
   return (
-    <Box  w="100%" h="100vh" overflow="hidden">
+    <Box w="100%" h="100vh" overflow="hidden">
       <Flex
         w="full"
         gap={2}
@@ -227,15 +246,15 @@ function BrowserPane({
         </Text>
       </Flex>
 
-      <Box h="full" w="full" overflow="scroll">
+      <Box h="full" w="full !important" overflow="scroll" position="relative">
         {loading ? (
-          <Spinner size="xl" color="blue.100" mt="20%" />
+          <Progress w="100%" isIndeterminate bg="blue.100" size="sm"/>
         ) : (
           <div
             onClick={handlePaneClick}
             ref={paneRef}
             dangerouslySetInnerHTML={{ __html: html }}
-            style={{ width: '100%' }}
+            style={{ width: "100% !important", overflow: "scroll"}}
           ></div>
         )}
       </Box>
@@ -243,12 +262,15 @@ function BrowserPane({
   );
 }
 
-function ControlPanelFormInput({ 
+function ControlPanelFormInput({
   receiver,
-  setParentError
-}: { receiver: string, setParentError: any }) {
-  const [telNumber, setTelNumber] = useState("");
-  const [email, setEmail] = useState("");
+  setParentError,
+}: {
+  receiver: string;
+  setParentError: any;
+}) {
+  const [telNumber, setTelNumber] = useState('');
+  const [email, setEmail] = useState('');
 
   const handleTelChange = (e: any) => setTelNumber(e.target.value);
   const handleEmailChange = (e: any) => setEmail(e.target.value);
@@ -260,9 +282,9 @@ function ControlPanelFormInput({
     if (isTelValid || isEmailValid) {
       setParentError(false);
       return;
-    } 
+    }
     setParentError(true);
-  })
+  });
 
   switch (receiver) {
     case 'whatsapp':
@@ -285,29 +307,36 @@ function ControlPanelFormInput({
             />
           </InputGroup>
 
-          {!isTelValid && <FormHelperText textAlign="left" color="red.500">Invalid Number</FormHelperText>}
+          {!isTelValid && (
+            <FormHelperText textAlign="left" color="red.500">
+              Invalid Number
+            </FormHelperText>
+          )}
         </FormControl>
       );
     case 'email':
       return (
         <FormControl my={1}>
           <FormLabel fontSize="sm">E-Mail Address *</FormLabel>
-        <Input
-          borderColor="gray.400"
-          borderWidth={1}
-          size="sm"
-          required
-          borderStyle="solid"
-          onChange={handleEmailChange}
-          type="email"
-          name="receiver"
-          _hover={{ borderColor: 'gray.500' }}
-          _focus={{ outline: 'none' }}
-          placeholder="Email"
-        />
-          {!isEmailValid && <FormHelperText textAlign="left" color="red.500">Invalid Email</FormHelperText>}
-</FormControl>
-
+          <Input
+            borderColor="gray.400"
+            borderWidth={1}
+            size="sm"
+            required
+            borderStyle="solid"
+            onChange={handleEmailChange}
+            type="email"
+            name="receiver"
+            _hover={{ borderColor: 'gray.500' }}
+            _focus={{ outline: 'none' }}
+            placeholder="Email"
+          />
+          {!isEmailValid && (
+            <FormHelperText textAlign="left" color="red.500">
+              Invalid Email
+            </FormHelperText>
+          )}
+        </FormControl>
       );
     default:
       throw new Error('Bad data, please refresh UI');
@@ -315,31 +344,38 @@ function ControlPanelFormInput({
 }
 
 const buildDracoQuery = (html: Array<string>, url: string) => {
-  let outVars: Array<string> =  [];
+  let outVars: Array<string> = [];
 
-  const page = `VAR page = FETCH "${url}" 
-    HEADER "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/112.0"
-    AS HTML
-  `
-  const vars = html.map((e, idx) => {
-    outVars.push(`d${idx+1}`);
-    return `VAR d${idx+1} = EXTRACT "${e}" FROM page`
-  }).join("\n")
+  let timeInMS = 6e5 * 15; // 15 minutes
+
+  const page = `VAR page = FETCH "${url}"
+    CACHE ${timeInMS}
+    AS HTML HEADLESS
+  `;
+  const vars = html
+    .map((e, idx) => {
+      outVars.push(`d${idx + 1}`);
+      return `VAR d${idx + 1} = EXTRACT "${e}" FROM page`;
+    })
+    .join('\n');
 
   const query = page + vars;
 
   return {
     syntax: query,
     vars: outVars,
-  }
-}
+  };
+};
 
-function ControlPanel({ selectedHtml, url }: { selectedHtml: Array<string>, url: string}) {
-  const [receiverIdentity, setReceiverIdentity] = useState(null);
+function ControlPanel({ selectedHtml, url }: { selectedHtml: Array<string>; url: string }) {
+  const [receiverIdentity, setReceiverIdentity] = useState("");
   const [scheduleNone, setScheduleNone] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const toast = useToast();
+
+  const errorToast = (title: string, desc: string) => toast({ title: title, description: desc, position: 'top-right', status: 'error', duration: 5000, isClosable: true,})
+
   const [globalUser, setGlobalUser] = useContext(UserContext);
   const navigate = useNavigate();
 
@@ -348,15 +384,14 @@ function ControlPanel({ selectedHtml, url }: { selectedHtml: Array<string>, url:
     setReceiverIdentity(identity);
   };
 
-  const handleControlSubmit = (e: any) => {
+  const handleControlSubmit = async (e: any) => {
     e.preventDefault();
     const formProps = Object.fromEntries(new FormData(e.target));
 
-
     if (!formProps.receiver) {
       toast({
-        title: "Receiver not selected",
-        description: "you need to select a receiver",
+        title: 'Receiver not selected',
+        description: 'you need to select a receiver',
         position: 'top-right',
         status: 'error',
         duration: 2000,
@@ -367,8 +402,8 @@ function ControlPanel({ selectedHtml, url }: { selectedHtml: Array<string>, url:
 
     if (Object.keys(selectedHtml).length === 0) {
       toast({
-        title: "No elements to extract",
-        description: "you need to select atleast one element",
+        title: 'No elements to extract',
+        description: 'you need to select atleast one element',
         position: 'top-right',
         status: 'error',
         duration: 2000,
@@ -377,67 +412,58 @@ function ControlPanel({ selectedHtml, url }: { selectedHtml: Array<string>, url:
       return;
     }
 
-
     const out = {
       query: buildDracoQuery(Object.keys(selectedHtml), url),
       schedule: {
-        type: formProps.scheduleType
+        type: formProps.scheduleType,
       },
       receiver: {
         identity: formProps.selectedIdentity,
         address: formProps.receiver,
-      }
-    }
+      },
+    };
+
+    console.log(out);
 
     setLoading(true);
+    let response;
 
-    fetch("http://localhost:4000/api/flows/", {
-      method: "POST",
-      headers: {
-        Authorization: "Bearer " + globalUser.token,
-        "Content-type": "application/json",
-      },
-      body: JSON.stringify(out),
-    })
-      .then(res => res.json())
-      .catch(error => {
-          toast({
-            title: "Unable to fetch, try again",
-            description: error,
-            position: 'top-right',
-            status: 'error',
-            duration: 2000,
-            isClosable: true,
-          });
-        setLoading(false);
+    try {
+      response = await fetch('http://localhost:4000/api/flows/', {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer ' + globalUser.token,
+          'Content-type': 'application/json',
+        },
+        body: JSON.stringify(out),
       })
-      .then((data: any)  => {
-        console.log(data);
-        if (data.status !== 201) {
-          toast({
-            title: data.error.message,
-            description: data.error.details,
-            position: 'top-right',
-            status: 'error',
-            duration: 5000,
-            isClosable: true,
-          });
-        } else {
-          navigate("/dashboard");
-        }
+    } catch (error) {
+      errorToast('Unable to fetch', 'was unable to fetch your request, please try again later');
+      setLoading(false);
+      return;
+    }
 
-        setLoading(false);
-      })
+    const data = await response.json();
+    if (data.status !== 201) {
+      errorToast(data.error.message, data.error.details);
+      setLoading(false);
+      return;
+    }
     
-  }
+    navigate("/dashboard");
+  };
 
   const handleSelectorChange = (e: any) => {
-    if (e.target.value === "none") {
+    if (e.target.value === 'none') {
       setScheduleNone(true);
       return;
     }
     setScheduleNone(false);
-  }
+  };
+
+  useEffect(() => {
+    setReceiverIdentity("email");
+  }, [])
 
   return (
     <Box
@@ -448,128 +474,147 @@ function ControlPanel({ selectedHtml, url }: { selectedHtml: Array<string>, url:
       p={4}
       zIndex={9999}
       rounded="md"
-      sx={{boxShadow: "rgba(0, 0, 0, 0.56) 0px 22px 70px 4px"}}
-      top={{md: "50%"}}
-      transform={{md: "translateY(-50%)"}}
-      left={{md: "0"}}
-      w={{base: "100%", md: 300}}
-      h={{base: 300, md: 550}}
+      sx={{ boxShadow: 'rgba(0, 0, 0, 0.56) 0px 22px 70px 4px' }}
+      top={{ md: '50%' }}
+      transform={{ md: 'translateY(-50%)' }}
+      left={{ md: '0' }}
+      w={{ base: '100%', md: 300 }}
+      h={{ base: 300, md: 550 }}
       display="flex"
       flexDirection="column"
       gap={2}
       as="form"
       onSubmit={handleControlSubmit}
     >
-      <Heading as="h2" size="md" textAlign="left" fontWeight={800} fontFamily="heading" color="gray.800">Selected</Heading>
-      <Flex flexDirection="column" w="full" minH={100} maxH={100} overflowY="scroll" rounded="sm">
+      <Heading
+        as="h2"
+        size="md"
+        textAlign="left"
+        fontWeight={800}
+        fontFamily="heading"
+        color="gray.800"
+      >
+        Selected
+      </Heading>
+
+      <Flex flexDirection="column" w="full" minH={100} maxH={100} overflowY="scroll" rounded="sm" 
+        justifyContent={ Object.keys(selectedHtml).length === 0 ? "center" : "flex-start" } 
+        alignItems="center">
+
+        {
+          Object.keys(selectedHtml).length === 0 && (
+            <Text color="gray.700" fontSize="sm">Click on the page to select an element</Text>
+          )
+        }
+
         {Object.keys(selectedHtml).map((el, idx) => {
           return (
-            <Box 
+            <Box
               key={idx}
               textAlign="left"
               w="full"
-              bg={idx % 2 === 0 ? "#e5e7eb" : "#f3f4f6"}
+              bg={idx % 2 === 0 ? '#e5e7eb' : '#f3f4f6'}
               p={1}
             >
-              <Text 
+              <Text
                 whiteSpace="nowrap"
                 fontSize="sm"
                 bg="transparent"
                 textOverflow="ellipsis"
                 overflow="hidden"
                 maxW="40ch"
-              >{selectedHtml[el as any]}</Text>
+              >
+                {selectedHtml[el as any]}
+              </Text>
             </Box>
           );
         })}
       </Flex>
 
-      <Box display="flex" flexDirection="column" gap={2} mt={1} mb={4}>
-
-      <Heading
-        as="h2"
-        size="md"
-        textAlign="left"
-        fontWeight={800}
-        fontFamily="heading"
-        color="gray.800"
-      >
-        Send via
-      </Heading>
-      <Select name="selectedIdentity" size="sm" onChange={handleReceiverChange}>
-                
-        {[
-          {
-            name: 'WhatsApp',
-            icon: 'bi-whatsapp',
-          },
-
-          {
-            name: 'Email',
-            icon: 'bi-envelope-fill',
-          },
-        ].map((e) => {
-          return (
-             <option value={e.name.toLowerCase()}> 
-               {e.name}
-            </option>
-          );
-        })}
-      </Select>
-
-      {receiverIdentity && <ControlPanelFormInput setParentError={setError} receiver={receiverIdentity} />}
-
-      </Box>
 
       <Box display="flex" flexDirection="column" gap={2} mt={1} mb={4}>
-      <Heading
-        as="h2"
-        size="md"
-        textAlign="left"
-        fontWeight={800}
-        fontFamily="heading"
-        color="gray.800"
-      >
-        Schedule
-      </Heading>
+        <Heading
+          as="h2"
+          size="md"
+          textAlign="left"
+          fontWeight={800}
+          fontFamily="heading"
+          color="gray.800"
+        >
+          Send via
+        </Heading>
+        <Select name="selectedIdentity" size="sm" onChange={handleReceiverChange}>
+          {[
+            {
+              name: 'WhatsApp',
+              icon: 'bi-whatsapp',
+            },
 
-
-        <Select size="sm" name="scheduleType" onChange={handleSelectorChange}>
-          <option value='none' selected>Never</option>
-          <option value='weekly'>Weekly</option>
-          <option value='monthly'>Monthly</option>
-          <option value='daily'>Daily</option>
+            {
+              name: 'Email',
+              icon: 'bi-envelope-fill',
+            },
+          ].map((e) => {
+            if (e.name === "Email") {
+              return <option selected value={e.name.toLowerCase()}>{e.name}</option>;
+            }
+            return <option value={e.name.toLowerCase()}>{e.name}</option>;
+          })}
         </Select>
 
-        {scheduleNone ? 
-          (
-            <Text fontSize="sm" color="green.500" textAlign="left">You will have to manually execute this</Text>
-          ) : (
-            <Input
-              placeholder="Repeat At"
-              required
-              size="sm"
-              name="scheduledAt"
-              type="time"
-            />
-          )
-
-        }
+        {receiverIdentity && (
+          <ControlPanelFormInput setParentError={setError} receiver={receiverIdentity} />
+        )}
       </Box>
 
+      <Box display="flex" flexDirection="column" gap={2} mt={1} mb={4}>
+        <Heading
+          as="h2"
+          size="md"
+          textAlign="left"
+          fontWeight={800}
+          fontFamily="heading"
+          color="gray.800"
+        >
+          Schedule
+        </Heading>
 
-      <Button py={2} 
+        <Select size="sm" name="scheduleType" onChange={handleSelectorChange}>
+          <option value="none" selected>
+            Never
+          </option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+          <option value="daily">Daily</option>
+        </Select>
+
+        {scheduleNone ? (
+          <Text fontSize="sm" color="green.500" textAlign="left">
+            You will have to manually execute this
+          </Text>
+        ) : (
+          <Input placeholder="Repeat At" required size="sm" name="scheduledAt" type="time" />
+        )}
+      </Box>
+
+      <Button
+        py={2}
         isLoading={loading}
         isDisabled={error}
-      type="submit" variant="solid" w="full" bg="blue.100 !important">Create flow</Button>
-
+        type="submit"
+        variant="solid"
+        w="full"
+        bg="blue.100 !important"
+      >
+        Create flow
+      </Button>
     </Box>
   );
 }
 
 export default function DashboardCreate() {
   const [globalUser, setGlobalUser] = useContext(UserContext);
-  const [siteUrl, setSiteUrl] = useState('https://bloomberg.com');
+  const [siteUrl, setSiteUrl] = useState('');
   const [selectedHtml, setSelectedHtml] = useState([]);
 
   const navigate = useNavigate();
@@ -597,7 +642,7 @@ export default function DashboardCreate() {
             selectedHtml={selectedHtml}
             setSelectedHtml={setSelectedHtml}
           />
-          <ControlPanel selectedHtml={selectedHtml} url={siteUrl}/>
+          <ControlPanel selectedHtml={selectedHtml} url={siteUrl} />
         </>
       )}
     </Box>
