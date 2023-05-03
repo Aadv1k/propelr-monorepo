@@ -1,31 +1,13 @@
 import Koa from 'koa';
-import * as draco from 'dracoql';
 
 import { ERROR, JWT_SECRET } from '../common/const';
 import * as utils from '../common/utils';
 import * as common from '@propelr/common';
-import { Flow, FlowState, Key, KeyPerms } from '../types';
+import { Flow, FlowState, KeyPerms } from '../types';
 import { USER_DB } from '../models/UserRepository';
 import flowSchema from "../schemas/flow";
 import { FLOW_RUNNER } from "../models/FlowRunner";
-
-function runDracoQueryAndGetVar(
-  query: string,
-  vars: Array<string>,
-): Promise<Array<string>> | undefined {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const lexer = new draco.lexer(query);
-      const parser = new draco.parser(lexer.lex());
-      const AST = parser.parse();
-      const interpreter = new draco.interpreter(AST);
-      await interpreter.run();
-      resolve(vars.map((e) => interpreter.getVar(e)));
-    } catch (err) {
-      reject(err);
-    }
-  });
-}
+import runDracoQueryAndGetVar from "../common/runDracoQuery";
 
 async function parseApiKey(ctx: Koa.Context): Promise<any | null> {
   if (!ctx.headers?.['x-api-key']) return null;
@@ -33,14 +15,6 @@ async function parseApiKey(ctx: Koa.Context): Promise<any | null> {
   if (!key) return null;
   return key;
 }
-
-async function hasKeyPermission(key: string, perm: KeyPerms): Promise<boolean> {
-  const keyObj  = await USER_DB.getKey(key);
-  if (!keyObj) return false;
-  if (!keyObj.permissions.includes(perm)) return false
-  return true
-}
-
 
 async function parseJwtTokenFromHeader(ctx: Koa.Context): Promise<any | null> {
   if (!ctx.headers?.['authorization']) return null;
@@ -54,7 +28,6 @@ async function parseJwtTokenFromHeader(ctx: Koa.Context): Promise<any | null> {
 
   return common.jwt.parse(token);
 }
-
 
 async function getFlowStop(ctx: Koa.Context): Promise<void> {
   let splitUrl = ctx.path.split('/');
