@@ -15,18 +15,22 @@ function formatMessageFromHTMLObject(obj: any): [string, string] {
         links.push(target.attributes.href);
         break;
       case 'img':
-        image.push(obj[item].attributes.src);
+        image.push(target.attributes.src);
         break;
-      case 'h3':
-      case 'h2':
       case 'h1':
+      case 'h2':
+      case 'h3':
       case 'h4':
       case 'h5':
       case 'h6':
-        text.push(obj[item].children[0].text);
+        text.push(target.children[0].text);
         break;
+      case 'b':
+      case 'i':
+      case 'em':
+      case 'strong':
       case 'p':
-        text.push(obj[item].children[0].text);
+        text.push(target.children[0].text);
         break;
     }
   }
@@ -84,24 +88,19 @@ export default async function executeFlow(flow: Flow) {
     return null;
   }
 
-  let ret: any = {};
-  for (let i = 0; i < dracoVars.length; i++) {
-    ret[dracoVars[i]] = parsedVars?.[i];
-  }
 
   const [message, htmlMessage] = formatMessageFromHTMLObject(parsedVars);
+
 
   switch (flow.receiver.identity) {
     case Recipients.whatsapp:
       break;
     case Recipients.email:
-      console.log('hello');
       const mailSent = await sendMail({
         to: flow.receiver.address,
-        subject: 'TEST',
+        subject: `propelr job: ${flow.id}`,
         html: htmlMessage,
       });
-      console.log(`[INFO] Sent mail ${mailSent}`);
       break;
   }
 }
