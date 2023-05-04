@@ -41,7 +41,7 @@ export enum Recipients {
 
 export interface Schedule {
   type: "daily" | "weekly" | "monthly" | 'none',
-  time: string,
+  time?: string,
   dayOfWeek?: number,
   dayOfMonth?: number
 }

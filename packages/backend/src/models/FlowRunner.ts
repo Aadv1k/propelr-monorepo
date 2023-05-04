@@ -37,6 +37,9 @@ export default class FlowRunner {
   
   public static generateCronFromSchedule(sch: Schedule): string  | null{
     const { type, dayOfWeek, dayOfMonth, time } = sch;
+
+    if (!time) return null;
+
     const [hour, minute] = time.split(':');
 
     switch (type as string) {

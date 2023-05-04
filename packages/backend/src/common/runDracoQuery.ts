@@ -3,7 +3,7 @@ import * as draco from 'dracoql';
 
 export function validateDracoSyntax(syntax: string): boolean {
   try {
-    const lexer = new draco.lexer(query);
+    const lexer = new draco.lexer(syntax);
     const parser = new draco.parser(lexer.lex());
     const AST = parser.parse();
     return true;

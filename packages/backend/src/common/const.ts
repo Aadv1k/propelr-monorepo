@@ -16,6 +16,12 @@ export const ABSTRACT_API = {
   KEY: process.env.ABSTRACT_API_KEY ?? '',
 };
 
+export const MAIL = {
+  address: process.env.MAIL_ADDRESS,
+  password: process.env.MAIL_PASSWORD,
+}
+
+
 export const GOOGLE_AUTH = {
   CLIENT_ID: process.env.GOOGLE_CLIENT_ID ?? '',
   CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ?? '',

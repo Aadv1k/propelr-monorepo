@@ -9,6 +9,8 @@ import flowSchema from "../schemas/flow";
 import { FLOW_RUNNER } from "../models/FlowRunner";
 import runDracoQueryAndGetVar from "../common/runDracoQuery";
 
+import executeFlow from "../common/executeFlow";;
+
 async function parseApiKey(ctx: Koa.Context): Promise<any | null> {
   if (!ctx.headers?.['x-api-key']) return null;
   const key = await USER_DB.getKey(ctx.headers?.['x-api-key'] as string)
@@ -340,11 +342,9 @@ async function getFlowExecute(ctx: Koa.Context): Promise<void> {
     return;
   }
 
-  let computedVars;
-
   const start: any = new Date();
   try {
-    computedVars = await runDracoQueryAndGetVar(foundFlow.query.syntax, foundFlow.query.vars);
+    await executeFlow(foundFlow);
   } catch (err: any) {
     utils.sendJSONResponse(ctx, {
       name: err.name,
@@ -352,18 +352,11 @@ async function getFlowExecute(ctx: Koa.Context): Promise<void> {
     });
     return;
   }
-
   const end: any = new Date();
-  computedVars = computedVars as any;
-  let ret: any = {};
-  for (let i = 0; i < computedVars.length; i++) {
-    ret[foundFlow.query.vars[i]] = computedVars[i].value;
-  }
 
   utils.sendJSONResponse(ctx, {
-    data: ret,
-    message: `Parsed query in ${end - start}ms`,
-    vars: computedVars,
+    message: `Success`,
+    details: `Ran query in ${end - start}ms`,
     status: 200,
   });
 }
