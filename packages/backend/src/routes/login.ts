@@ -6,7 +6,6 @@ import { sendErrorResponse, sendJSONResponse, md5, validateSchema } from '../com
 import * as common from '@propelr/common';
 import { User } from '../types';
 import { USER_DB } from '../models/UserRepository';
-import userSchema from '../schemas/user';
 
 export default async function (ctx: Koa.Context): Promise<void> {
   if (ctx.method !== 'POST') {
@@ -21,7 +20,10 @@ export default async function (ctx: Koa.Context): Promise<void> {
     sendErrorResponse(ctx, ERROR.invalidJSON);
     return;
   }
-  if (!validateSchema(ctx.request.body, userSchema)) {
+
+  const reqBody: any = ctx.request.body;
+
+  if (!reqBody.email || !reqBody.password) {
     sendErrorResponse(ctx, ERROR.badInput);
     return;
   }
@@ -42,15 +44,14 @@ export default async function (ctx: Koa.Context): Promise<void> {
   const jwt_payload: any = {
     id: foundUser.id,
     email: foundUser.email,
+    username: foundUser.username,
   };
 
   const token = common.jwt.sign(jwt_payload, JWT_SECRET);
 
   sendJSONResponse(ctx, {
-    success: {
-      message: 'Login successful',
-      token,
-    },
+    message: 'Login successful',
+    token,
     status: 200,
   });
 }

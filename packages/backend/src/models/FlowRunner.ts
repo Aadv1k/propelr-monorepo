@@ -11,14 +11,16 @@ export default class FlowRunner {
   }
 
   register(flow: Flow, cb: any) {
+    console.log(`[INFO] FlowRunner.register: Registering flow ${flow.id} `)
     const cronStr = FlowRunner.generateCronFromSchedule(flow.schedule)
     if (!cronStr) {
       return;
     }
 
-    this.flows[flow.id] = cron.schedule(cronStr as string, () => cb(flow), {
-      scheduled: false
-    });
+    this.flows[flow.id] = cron.schedule(cronStr as string, () => {
+      console.log(`[INFO] FlowRunner.register: Running flow ${flow.id} `)
+      cb(flow)
+    }, { scheduled: false });
   }
 
   stopFlowById(id: string) {

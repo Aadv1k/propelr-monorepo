@@ -14,10 +14,7 @@ import { createKey } from "./routes/key";
 
 import { routeUsersGet, routeUsersDelete } from './routes/users';
 
-import { Flow, FlowState } from "./types";
-
 import { USER_DB } from './models/UserRepository';
-import { FLOW_RUNNER } from "./models/FlowRunner";
 
 import {
   getFlow,
@@ -59,21 +56,7 @@ const ROUTES = {
 
 app.use(passport.initialize());
 
-async function startFlowsAfterInit() {
-  let flows = await USER_DB.RAW_getFlows({});
-  flows.forEach((flow: Flow) => {
-    if (flow.schedule.type === "none") return;
-    FLOW_RUNNER.register(flow, (f: any) => {
-      console.log(`should run: ${f.query.syntax}`);
-    })
-    if (flow.status === FlowState.RUNNING) FLOW_RUNNER.startFlowById(flow.id);
-  })
-}
-
 app.use(async (ctx: Koa.Context, next) => {
-  await USER_DB.init();
-  await startFlowsAfterInit();
-
   if (ctx.path === '/') {
     utils.sendJSONResponse(ctx, Object.keys(ROUTES), 200);
   } else if (ctx.url.match(ROUTES['/api/flows']) && ctx.method === 'GET') {

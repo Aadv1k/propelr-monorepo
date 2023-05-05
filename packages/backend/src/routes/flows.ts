@@ -279,7 +279,7 @@ async function createFlow(ctx: Koa.Context): Promise<void> {
 
   if (flow.schedule.type !== "none") {
     FLOW_RUNNER.register(flow, (f: Flow) => {
-      console.log(f.id); 
+      executeFlow(f);
     })
   } 
 
@@ -399,6 +399,7 @@ async function getFlow(ctx: Koa.Context): Promise<void> {
     return {
       id: e.id,
       query: e.query,
+      status: e.status,
       createdAt: e.createdAt,
       schedule: e.schedule,
       receiver: {

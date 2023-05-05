@@ -63,6 +63,7 @@ export default async function (ctx: Koa.Context): Promise<void> {
     id: generateId(8),
     email: data.email,
     password: md5(data.password),
+    username: data.username,
   };
 
   const pushedUser: User | null = await USER_DB.pushUser(user);
@@ -75,6 +76,7 @@ export default async function (ctx: Koa.Context): Promise<void> {
   const jwt_payload: any = {
     id: pushedUser.id,
     email: pushedUser.email,
+    username: pushedUser.username
   };
 
   const token = common.jwt.sign(jwt_payload, JWT_SECRET);
