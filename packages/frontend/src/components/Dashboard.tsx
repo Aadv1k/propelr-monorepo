@@ -70,92 +70,124 @@ function timeSince(date: number): string {
   return Math.ceil(seconds) + ' seconds ago';
 }
 
-function FlowList(props: any) {
+function FlowListItem(props: any) {
   const [globalUser, _] = useContext(UserContext);
+  const [flowLoading, setFlowLoading] = useState(false);
+  const toast = useToast();
 
   const handleFlowExecute = (e: any) => {
-    const flowIdentity = e.currentTarget.getAttribute("data-identity");
-
+    setFlowLoading(true);
+    const flowIdentity = e.currentTarget.getAttribute('data-identity');
     fetch(`http://localhost:4000/api/flows/${flowIdentity}/execute`, {
-      method: "GET",
+      method: 'GET',
       headers: {
-        Authorization: "Bearer " + globalUser.token,
-      }
+        Authorization: 'Bearer ' + globalUser.token,
+      },
     })
-      .then(res => res.json())
-      .then(data => {
-        console.log(data);
-      })
-  }
+      .then((res) => res.json())
+      .then((data) => {
+        toast({
+          title: 'Success',
+          description: data.details,
+          position: 'top-right',
+          status: 'success',
+          duration: 2000,
+          isClosable: true,
+        });
+        setFlowLoading(false);
+      });
+  };
 
+  return (
+    <Flex
+      flexDirection={{ base: 'column', md: 'row' }}
+      gap={2}
+      h={{ base: 'auto', md: 20 }}
+      w="full"
+      justifyContent="space-between"
+      px={2}
+      py={4}
+    >
+      <Flex flexDirection="column" alignSelf={{ base: 'flex-start', md: 'center' }}>
+        <Heading
+          textAlign="left"
+          fontWeight={800}
+          fontSize="2xl"
+          fontFamily="body"
+          color="gray.700"
+        >
+          {props.flow.id}
+          <Tag size="sm" bg="#eee4c8" textTransform="uppercase" ml={2} mt={1}>
+            {props.flow.schedule.type}
+          </Tag>
+        </Heading>
 
+        <Text textAlign="left" color="gray.600">
+          {timeSince(props.flow.createdAt)}
+        </Text>
+      </Flex>
+
+      <Flex alignItems={{base: "flex-start", md: "center"}} gap={2} flexDirection={{base: "column", md: "row"}}>
+        <Tag bg="#eee4c8" size="sm" textTransform="uppercase" mt={1}>
+          Send to
+        </Tag>
+        <Text>{props.flow.receiver.address}</Text>
+      </Flex>
+
+      <ButtonGroup alignSelf={{ base: 'center' }}>
+        {props.flow.schedule.type !== 'none' &&
+          (props.flow.status === 'running' ? (
+            <Button
+              rounded="full"
+              isDisabled={flowLoading}
+              aspectRatio="1"
+              h="100%"
+              bg="red.400"
+              color="white"
+              _hover={{ bg: 'red.500', color: 'white' }}
+              _focus={{ bg: 'red.500', color: 'white' }}
+            >
+              <i className="bi bi-stop-fill" style={{ fontSize: '1.5rem' }}></i>
+            </Button>
+          ) : (
+            <Button
+              rounded="full"
+              aspectRatio="1"
+              h="100%"
+              bg="yellow.200"
+              color="black"
+              _hover={{ bg: 'yellow.100', color: 'black' }}
+              _focus={{ bg: 'yellow.100', color: 'black' }}
+              data-identity={props.flow.id}
+              isDisabled={flowLoading}
+            >
+              <i className="bi bi-play-fill" style={{ fontSize: '1.5rem' }}></i>
+            </Button>
+          ))}
+        <Button
+          rounded="full"
+          aspectRatio="1"
+          data-identity={props.flow.id}
+          onClick={handleFlowExecute}
+          isLoading={flowLoading}
+          h="100%"
+          bg="yellow.200"
+          color="black"
+          _hover={{ bg: 'yellow.100', color: 'black' }}
+          _focus={{ bg: 'yellow.100', color: 'black' }}
+        >
+          <i className="bi bi-lightning-charge-fill" style={{ fontSize: '1.4rem' }}></i>
+        </Button>
+      </ButtonGroup>
+    </Flex>
+  );
+}
+
+function FlowList(props: any) {
   return (
     <VStack>
       {props.flows.map((flow: any) => {
-        return (
-          <Flex flexDirection={{base: "column", md: "row"}} gap={2} h={{base: "auto", md: 20}} w="full" justifyContent="space-between" px={2} py={4} >
-            <Flex flexDirection="column" alignSelf={{base: "flex-start", md: "center"}}>
-              <Heading
-                textAlign="left"
-                fontWeight={800}
-                fontSize="2xl"
-                fontFamily="body"
-                color="gray.700"
-              >
-                {flow.id}
-                <Tag bg="#eee4c8" textTransform="capitalize" ml={2} mt={1}>{flow.schedule.type}</Tag>
-              </Heading>
-
-              <Text textAlign="left" color="gray.600">
-                {timeSince(flow.createdAt)}
-              </Text>
-            </Flex>
-
-            <ButtonGroup alignSelf={{base: "center"}}>
-              {flow.status === 'running' ? (
-                <Button
-                  rounded="full"
-                  aspectRatio="1"
-                  h="100%"
-                  bg="red.400"
-                  color="white"
-                  _hover={{ bg: 'red.500', color: 'white' }}
-                  _focus={{ bg: 'red.500', color: 'white' }}
-                >
-                  <i className="bi bi-stop-fill" style={{ fontSize: '1.5rem' }}></i>
-                </Button>
-              ) : (
-                <Button
-                  rounded="full"
-                  aspectRatio="1"
-                  h="100%"
-                  bg="yellow.200"
-                  data-identity={flow.id} 
-                  onClick={handleFlowExecute}
-                  color="black"
-                  _hover={{ bg: 'yellow.100', color: 'black' }}
-                  _focus={{ bg: 'yellow.100', color: 'black' }}
-                >
-                  <i className="bi bi-play-fill" style={{ fontSize: '1.5rem' }}></i>
-                </Button>
-              )}
-
-                <Button
-                  rounded="full"
-                  aspectRatio="1"
-                  data-identity={flow.id} 
-                  onClick={handleFlowExecute}
-                  h="100%"
-                  bg="yellow.200"
-                  color="black"
-                  _hover={{ bg: 'yellow.100', color: 'black' }}
-                  _focus={{ bg: 'yellow.100', color: 'black' }}
-                >
-                <i className="bi bi-lightning-charge-fill" style={{ fontSize: '1.4rem' }}></i>
-              </Button>
-            </ButtonGroup>
-          </Flex>
-        );
+        return <FlowListItem flow={flow} />;
       })}
     </VStack>
   );
@@ -171,8 +203,8 @@ export default function Dashboard() {
   const [flowsLoading, setFlowsLoading] = useState(false);
 
   useEffect(() => {
-    if (!localStorage.getItem("propelrToken")) {
-      navigate("/login");
+    if (!localStorage.getItem('propelrToken')) {
+      navigate('/login');
       return;
     }
 
@@ -249,21 +281,29 @@ export default function Dashboard() {
         >
           <Flex
             borderWidth="2px"
-            borderColor="gray.500"
+            borderColor="#a3a3a3"
             rounded="md"
+            flexDirection="column"
             borderStyle="dashed"
-            alignItems="center"
-            py={6}
-            justifyContent="center"
+            p={4}
+            gap={2}
             h="full"
             w={{ base: 'full', md: '25%' }}
           >
-
-
             <RouterLink to="/dashboard/create">
-              <Button as="a" variant="solid">Create flow</Button>
+              <Button as="a" variant="solid"
+              bg="yellow.200"
+              color="black"
+              _hover={{ bg: 'yellow.100', color: 'black' }}
+              _focus={{ bg: 'yellow.100', color: 'black' }}
+>
+                Create flow
+              </Button>
             </RouterLink>
 
+            <Text color="gray.600" textAlign="left">
+              Create a new flow, best works on desktop
+            </Text>
           </Flex>
 
           <Flex
@@ -332,14 +372,7 @@ export default function Dashboard() {
       </Box>
 
       <Box my={6}>
-        <Heading
-          as="h2"
-          color="blue.200"
-          textAlign="left"
-          fontWeight={800}
-          fontSize="4xl"
-          mb={4}
-        >
+        <Heading as="h2" color="blue.200" textAlign="left" fontWeight={800} fontSize="4xl" mb={4}>
           Flows
         </Heading>
         {flowsLoading ? (

@@ -412,6 +412,8 @@ function ControlPanel({ selectedHtml, url }: { selectedHtml: Array<string>; url:
       return;
     }
 
+    console.log(formProps);
+
     const out = {
       query: buildDracoQuery(Object.keys(selectedHtml), url),
       schedule: {
@@ -427,7 +429,11 @@ function ControlPanel({ selectedHtml, url }: { selectedHtml: Array<string>; url:
 
     setLoading(true);
     let response;
+    setLoading(false);
 
+
+
+    /*
     try {
       response = await fetch('http://localhost:4000/api/flows/', {
         method: 'POST',
@@ -443,6 +449,7 @@ function ControlPanel({ selectedHtml, url }: { selectedHtml: Array<string>; url:
       return;
     }
 
+
     const data = await response.json();
     if (data.status !== 201) {
       errorToast(data.error.message, data.error.details);
@@ -451,6 +458,7 @@ function ControlPanel({ selectedHtml, url }: { selectedHtml: Array<string>; url:
     }
     
     navigate("/dashboard");
+     */
   };
 
   const handleSelectorChange = (e: any) => {
