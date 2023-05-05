@@ -1,6 +1,10 @@
 import globals from "@propelr/common/globals";
 import jwtDecode from "jwt-decode";
 import { Link as RouterLink } from "react-router-dom";
+
+import oauth_config from "../../../../shared/oauth_config.json";
+import api_route_config from "../../../../shared/api_routes.json";
+
 import {
   Card,
   CardHeader,
@@ -79,9 +83,9 @@ export default function Register() {
 
     navigate(location.pathname, {});
 
-    oAuthParams.set("redirect", "http://localhost:3000/register");
+    oAuthParams.set("redirect", oauth_config.google.redirectRegister);
 
-    fetch(`http://localhost:4000/api/oauth/${provider}/token?${objectToQueryString(Object.fromEntries(oAuthParams))}`)
+    fetch(`${api_route_config.base}/api/oauth/${provider}/token?${objectToQueryString(Object.fromEntries(oAuthParams))}`)
       .then(res => res.json())
       .then(data => {
 
@@ -138,7 +142,7 @@ export default function Register() {
     const form = new FormData(e.target as HTMLFormElement);
     const formProps = Object.fromEntries(form);
     setLoading(true);
-    fetch("http://localhost:4000/api/users/register", {
+    fetch("${api_route_config.base}/api/users/register", {
       method: "POST",
       headers: {
         "Content-type": "application/json"
@@ -183,8 +187,8 @@ export default function Register() {
     switch (provider) {
       case "google": { 
         const params = objectToQueryString({
-          client_id: globals.GOOGLE_AUTH.CLIENT_ID,
-          redirect_uri: "http://localhost:3000/register",
+          client_id: oauth_config.google.clientId,
+          redirect_uri: oauth_config.google.redirectRegister,
           scope: "email profile",
           response_type: "code"
         })
@@ -194,8 +198,8 @@ export default function Register() {
       }
       case "microsoft": {
         const params = objectToQueryString({
-          client_id: globals.MS_AUTH.CLIENT_ID,
-          redirect_uri: "http://localhost:3000/register",
+          client_id: oauth_config.microsoft.clientId,
+          redirect_uri: oauth_config.microsoft.redirectRegister,
           scope: "User.Read",
           response_type: "code"
         })

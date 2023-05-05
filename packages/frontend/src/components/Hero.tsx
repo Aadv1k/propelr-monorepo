@@ -10,6 +10,8 @@ import imgArrow from '../assets/arrow-y.png';
 import imgMoneycontrol from '../assets/moneycontrol-fhd.png';
 import imgWhatsapp from '../assets/whatsapp.png';
 
+import { useState, useEffect } from "react";
+
 const data = [
   {
     src: {
@@ -36,6 +38,14 @@ const data = [
 
 export default function Hero() {
   const isMobile = useMediaQuery('(max-width: 700px)');
+    const [userLoggedIn, setUserLoggedIn] = useState(false);
+
+    useEffect(() => {
+	const token = localStorage.getItem("propelrToken");
+	if (token) {
+	    setUserLoggedIn(true);
+	}
+    }, [])
 
   return (
     <>

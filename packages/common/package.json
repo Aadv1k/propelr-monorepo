@@ -16,6 +16,7 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
+    "dotenv": "^16.0.3",
     "dracoql": "^0.2.1",
     "puppeteer": "^19.11.1"
   }
