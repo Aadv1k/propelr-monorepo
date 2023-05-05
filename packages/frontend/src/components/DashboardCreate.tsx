@@ -118,10 +118,12 @@ function AskForURL({ url, setUrl }: { url: string; setUrl: any }): any {
 
 function BrowserPane({
   url,
+  setUrl,
   selectedHtml,
   setSelectedHtml,
 }: {
   url: string;
+  setUrl: any;
   selectedHtml: Array<string>;
   setSelectedHtml: any;
 }) {
@@ -155,7 +157,6 @@ function BrowserPane({
       xhr.onprogress = (event) => {
         if (event.lengthComputable) {
           const percentComplete = event.loaded / event.total * 100;
-          console.log(Math.floor(percentComplete));
           setProgress(Math.floor(percentComplete));
         }
       };
@@ -214,11 +215,11 @@ function BrowserPane({
         justifyContent="space-between"
       >
         <Flex gap={1} h="full" alignItems="center">
-          <RouterLink to="/dashboard">
-            <Button as="a" color="gray.600" variant="link">
+            <Button as="a" color="gray.600" variant="link" onClick={() => {
+                setUrl(null);
+              }}>
               <i className="bi bi-arrow-left" style={{ fontSize: '1.4rem' }}></i>
             </Button>
-          </RouterLink>
           <Button
             onClick={fetchHtml}
             variant="link"
@@ -346,7 +347,7 @@ function ControlPanelFormInput({
 const buildDracoQuery = (html: Array<string>, url: string) => {
   let outVars: Array<string> = [];
 
-  let timeInMS = 6e5 * 15; // 15 minutes
+  let timeInMS = (6e4) * 15; // 15 minutes
 
   const page = `VAR page = FETCH "${url}"
     CACHE ${timeInMS}
@@ -412,12 +413,11 @@ function ControlPanel({ selectedHtml, url }: { selectedHtml: Array<string>; url:
       return;
     }
 
-    console.log(formProps);
-
     const out = {
       query: buildDracoQuery(Object.keys(selectedHtml), url),
       schedule: {
         type: formProps.scheduleType,
+        time: formProps.scheduledAt ?? null,
       },
       receiver: {
         identity: formProps.selectedIdentity,
@@ -425,15 +425,9 @@ function ControlPanel({ selectedHtml, url }: { selectedHtml: Array<string>; url:
       },
     };
 
-    console.log(out);
-
     setLoading(true);
     let response;
-    setLoading(false);
 
-
-
-    /*
     try {
       response = await fetch('http://localhost:4000/api/flows/', {
         method: 'POST',
@@ -449,7 +443,6 @@ function ControlPanel({ selectedHtml, url }: { selectedHtml: Array<string>; url:
       return;
     }
 
-
     const data = await response.json();
     if (data.status !== 201) {
       errorToast(data.error.message, data.error.details);
@@ -458,7 +451,6 @@ function ControlPanel({ selectedHtml, url }: { selectedHtml: Array<string>; url:
     }
     
     navigate("/dashboard");
-     */
   };
 
   const handleSelectorChange = (e: any) => {
@@ -591,8 +583,6 @@ function ControlPanel({ selectedHtml, url }: { selectedHtml: Array<string>; url:
           <option value="none" selected>
             Never
           </option>
-          <option value="weekly">Weekly</option>
-          <option value="monthly">Monthly</option>
           <option value="daily">Daily</option>
         </Select>
 
@@ -647,6 +637,7 @@ export default function DashboardCreate() {
         <>
           <BrowserPane
             url={siteUrl}
+            setUrl={setSiteUrl}
             selectedHtml={selectedHtml}
             setSelectedHtml={setSelectedHtml}
           />

@@ -18,7 +18,7 @@ import DashboardCreate from "./components/DashboardCreate";
 import Register from './components/Register';
 import Login from './components/Login';
 
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 
 import { useState, useEffect, useContext} from "react" ;
 
@@ -55,6 +55,19 @@ function LoginPage() {
   );
 }
 
+function LogoutPage() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    localStorage.removeItem("propelrToken");
+    navigate("/login");
+  }, []);
+
+  return (
+    <></>
+  )
+}
+
 function App() {
   const [globalUser, setGlobalUser] = useState({});
 
@@ -82,6 +95,7 @@ function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/dashboard/create" element={<DashboardCreate />} />
+              <Route path="/logout" element={<LogoutPage />} />
             </Routes>
           </BrowserRouter>
         </UserContext.Provider>

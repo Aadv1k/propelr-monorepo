@@ -73,7 +73,57 @@ function timeSince(date: number): string {
 function FlowListItem(props: any) {
   const [globalUser, _] = useContext(UserContext);
   const [flowLoading, setFlowLoading] = useState(false);
+  const [flow, setFlow] = useState(props.flow);
   const toast = useToast();
+
+
+  const handleFlowStop = (e: any) => {
+    setFlowLoading(true);
+    const flowIdentity = e.currentTarget.getAttribute('data-identity');
+    fetch(`http://localhost:4000/api/flows/${flowIdentity}/stop`, {
+      method: 'GET',
+      headers: {
+        Authorization: 'Bearer ' + globalUser.token,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        toast({
+          title: 'Success',
+          description: data.details,
+          position: 'top-right',
+          status: 'success',
+          duration: 2000,
+          isClosable: true,
+        });
+        setFlow({...flow, status: "stopped"})
+        setFlowLoading(false);
+      });
+  }
+
+  const handleFlowStart = (e: any) => {
+    setFlowLoading(true);
+    const flowIdentity = e.currentTarget.getAttribute('data-identity');
+    fetch(`http://localhost:4000/api/flows/${flowIdentity}/start`, {
+      method: 'GET',
+      headers: {
+        Authorization: 'Bearer ' + globalUser.token,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        toast({
+          title: 'Success',
+          description: data.details,
+          position: 'top-right',
+          status: 'success',
+          duration: 2000,
+          isClosable: true,
+        });
+        setFlow({...flow, status: "running"})
+        setFlowLoading(false);
+      });
+  }
 
   const handleFlowExecute = (e: any) => {
     setFlowLoading(true);
@@ -94,6 +144,7 @@ function FlowListItem(props: any) {
           duration: 2000,
           isClosable: true,
         });
+        setFlow({...flow, status: "stopped"})
         setFlowLoading(false);
       });
   };
@@ -116,14 +167,20 @@ function FlowListItem(props: any) {
           fontFamily="body"
           color="gray.700"
         >
-          {props.flow.id}
-          <Tag size="sm" bg="#eee4c8" textTransform="uppercase" ml={2} mt={1}>
-            {props.flow.schedule.type}
+          {flow.id}
+          <Tag size="sm" color="black" bg="yellow.100" variant="solid" textTransform="uppercase" ml={1} mt={1}>
+            {flow.schedule.type}
           </Tag>
+
+          {flow.schedule.type === "daily" ?
+            <Tag size="sm" color="gray.800" bg="blue.300" variant="solid" textTransform="uppercase" ml={1} mt={1}>
+              {flow.schedule.time}
+            </Tag> : ""
+          }
         </Heading>
 
         <Text textAlign="left" color="gray.600">
-          {timeSince(props.flow.createdAt)}
+          {timeSince(flow.createdAt)}
         </Text>
       </Flex>
 
@@ -131,17 +188,19 @@ function FlowListItem(props: any) {
         <Tag bg="#eee4c8" size="sm" textTransform="uppercase" mt={1}>
           Send to
         </Tag>
-        <Text>{props.flow.receiver.address}</Text>
+        <Text>{flow.receiver.address}</Text>
       </Flex>
 
       <ButtonGroup alignSelf={{ base: 'center' }}>
-        {props.flow.schedule.type !== 'none' &&
-          (props.flow.status === 'running' ? (
+        {flow.schedule.type !== 'none' &&
+          (flow.status === 'running' ? (
             <Button
               rounded="full"
               isDisabled={flowLoading}
               aspectRatio="1"
               h="100%"
+              onClick={handleFlowStop}
+              data-identity={flow.id}
               bg="red.400"
               color="white"
               _hover={{ bg: 'red.500', color: 'white' }}
@@ -154,11 +213,13 @@ function FlowListItem(props: any) {
               rounded="full"
               aspectRatio="1"
               h="100%"
-              bg="yellow.200"
-              color="black"
-              _hover={{ bg: 'yellow.100', color: 'black' }}
-              _focus={{ bg: 'yellow.100', color: 'black' }}
-              data-identity={props.flow.id}
+              onClick={handleFlowStart}
+
+          bg="blue.300"
+          color="gray.700"
+          _hover={{ bg: 'blue.400', color: 'gray.700' }}
+          _focus={{ bg: 'blue.400', color: 'gray.700' }}
+              data-identity={flow.id}
               isDisabled={flowLoading}
             >
               <i className="bi bi-play-fill" style={{ fontSize: '1.5rem' }}></i>
@@ -167,14 +228,14 @@ function FlowListItem(props: any) {
         <Button
           rounded="full"
           aspectRatio="1"
-          data-identity={props.flow.id}
+          data-identity={flow.id}
           onClick={handleFlowExecute}
           isLoading={flowLoading}
           h="100%"
-          bg="yellow.200"
-          color="black"
-          _hover={{ bg: 'yellow.100', color: 'black' }}
-          _focus={{ bg: 'yellow.100', color: 'black' }}
+              bg="yellow.200"
+              color="gray.700"
+              _hover={{ bg: 'yellow.100', color: 'gray.700' }}
+              _focus={{ bg: 'yellow.100', color: 'gray.700' }}
         >
           <i className="bi bi-lightning-charge-fill" style={{ fontSize: '1.4rem' }}></i>
         </Button>
@@ -246,13 +307,13 @@ export default function Dashboard() {
     <Box w="full" maxW={1400} mx="auto" minH="100vh" py={6} px={8}>
       <Flex alignItems="center" justifyContent="space-between" p={4}>
         <Flex gap={2}>
-          <Avatar name="Dan Abrahmov" src="https://bit.ly/dan-abramov" />
+          <Avatar name={globalUser.username} src="" />
           <Flex alignItems="start" flexDirection="column">
             <Text color="gray.400" fontSize="sm">
               Good morning
             </Text>
             <Text color="gray.700" fontSize="md">
-              John doe
+              {globalUser.username}
             </Text>
           </Flex>
         </Flex>
@@ -274,15 +335,16 @@ export default function Dashboard() {
           Quick glance
         </Heading>
         <Flex
-          gap={4}
+          gap={6}
           h={{ md: 150 }}
-          w={{ base: 'full', md: 800 }}
+          w={{ base: 'full', md: "100%" }}
+          maxW={800}
           flexDirection={{ base: 'column', md: 'row' }}
         >
           <Flex
             borderWidth="2px"
             borderColor="#a3a3a3"
-            rounded="md"
+            rounded="2xl"
             flexDirection="column"
             borderStyle="dashed"
             p={4}
@@ -310,7 +372,7 @@ export default function Dashboard() {
             shadow="sm"
             borderWidth="2px"
             borderColor="#EEE4C8"
-            rounded="xl"
+            rounded="2xl"
             borderStyle="dashed"
             bg="#EEE4C8"
             justifyContent="space-between"

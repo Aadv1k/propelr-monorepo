@@ -1,4 +1,5 @@
 import globals from "@propelr/common/globals";
+import jwtDecode from "jwt-decode";
 import { Link as RouterLink } from "react-router-dom";
 import {
   Card,
@@ -18,9 +19,10 @@ import {
   Image,
 } from '@chakra-ui/react';
 import { FormControl, FormLabel, FormErrorMessage, Input, FormHelperText } from '@chakra-ui/react';
-import {useEffect, useState} from 'react';
+import { useEffect, useState, useContext } from 'react';
 
-import { useLocation } from "react-router-dom";
+import UserContext from "../context/UserContext";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import imgMonkey2 from '../assets/dalle-monkey-2.png';
 import { useToast } from '@chakra-ui/react';
@@ -50,23 +52,40 @@ export default function Register() {
   const [passwordError, setPasswordError] = useState('');
   const [matchError, setMatchError] = useState('');
 
-  const [userLoading, setUserLoading] = useState(true);
+  const [globalUser, setGlobalUser] = useContext(UserContext);
+
+  const [userLoading, setUserLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const oAuthParams = new URLSearchParams(location.search);
+    if (localStorage.getItem("propelrToken")) {
+      navigate("/dashboard")
+      return;
+    };
 
+    let provider = localStorage.getItem("propelrOAuthProvider");
+    if (!provider) {
+      return;
+    };
+
+
+    setUserLoading(true);
+
+    const oAuthParams = new URLSearchParams(location.search);
     if (!oAuthParams.get("code")) {
       setUserLoading(false);
       return;
     };
 
+    navigate(location.pathname, {});
+
     oAuthParams.set("redirect", "http://localhost:3000/register");
 
-    fetch(`http://localhost:4000/api/oauth/google/token?${objectToQueryString(Object.fromEntries(oAuthParams))}`)
+    fetch(`http://localhost:4000/api/oauth/${provider}/token?${objectToQueryString(Object.fromEntries(oAuthParams))}`)
       .then(res => res.json())
       .then(data => {
 
-        if (data.status !== 200) {
+       if (data.status !== 200) {
           toast({
             title: data.error.message,
             description: data.error.details,
@@ -76,7 +95,15 @@ export default function Register() {
             isClosable: true,
           });
         } else {
-          /* TODO: REDIRECT */
+          const parsedToken: any = jwtDecode(data.token);
+          setGlobalUser({
+            ...parsedToken,
+            token: data.token,
+          });
+          localStorage.setItem("propelrToken", data.token);
+          setLoading(false);
+          window.localStorage.removeItem("propelrOAuthProvider");
+          navigate("/dashboard");
         }
         setUserLoading(false);
       })
@@ -117,6 +144,7 @@ export default function Register() {
         "Content-type": "application/json"
       },
       body: JSON.stringify({
+        username: formProps.username,
         email: formProps.email,
         password: formProps.password
       })
@@ -133,7 +161,12 @@ export default function Register() {
             isClosable: true,
           });
         } else {
-          /* TODO: REDIRECT */
+          setGlobalUser({
+            ...jwtDecode(data.token),
+            token: data.token,
+          });
+          localStorage.setItem("propelrToken", data.token);
+          navigate("/dashboard");
         }
         setLoading(false);
       })
@@ -145,8 +178,10 @@ export default function Register() {
       throw new Error("Unknown provider, please refresh");
     }
 
+    window.localStorage.setItem("propelrOAuthProvider", provider);
+
     switch (provider) {
-      case "google":
+      case "google": { 
         const params = objectToQueryString({
           client_id: globals.GOOGLE_AUTH.CLIENT_ID,
           redirect_uri: "http://localhost:3000/register",
@@ -155,7 +190,19 @@ export default function Register() {
         })
         const url = `https://accounts.google.com/o/oauth2/auth?${params}`;
         window.location.href = url;
+        break; 
+      }
+      case "microsoft": {
+        const params = objectToQueryString({
+          client_id: globals.MS_AUTH.CLIENT_ID,
+          redirect_uri: "http://localhost:3000/register",
+          scope: "User.Read",
+          response_type: "code"
+        })
+        const url = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${params}`;
+        window.location.href = url;
         break;
+      }
       default: 
         console.log("you got bamboozled");
     }
@@ -165,7 +212,7 @@ export default function Register() {
   if (!userLoading) {
 
   return (
-    <Card h={600} maxW={600} w="90%" mx="auto" my={50}>
+    <Card  maxW={600} w="90%" mx="auto" my={50}>
       <CardHeader>
         <Heading size="xl" fontFamily="heading" color="blue.200" fontWeight={800} textAlign="left">
           Sign Up
@@ -211,6 +258,11 @@ export default function Register() {
           gap={1}
           onSubmit={handleSubmit}
         >
+          <FormControl>
+            <FormLabel>Username</FormLabel>
+            <Input type="text" name="username" placeholder="Username" required />
+          </FormControl>
+
           <FormControl>
             <FormLabel>Email</FormLabel>
             <Input type="email" name="email" placeholder="Email" required />

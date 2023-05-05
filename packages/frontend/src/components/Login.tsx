@@ -50,7 +50,7 @@ export default function Login() {
 
   const [globalUser, setGlobalUser] = useContext(UserContext);
 
-  const [userLoading, setUserLoading] = useState(true);
+  const [userLoading, setUserLoading] = useState(false);
   const [isLoading, setLoading] = useState(false);
 
 
@@ -60,6 +60,12 @@ export default function Login() {
       return;
     };
 
+    let provider = localStorage.getItem("propelrOAuthProvider");
+    if (!provider) {
+      return;
+    };
+
+    setUserLoading(true);
     const oAuthParams = new URLSearchParams(location.search);
     if (!oAuthParams.get("code")) {
       setUserLoading(false);
@@ -70,7 +76,7 @@ export default function Login() {
 
     oAuthParams.set("redirect", "http://localhost:3000/login");
 
-    fetch(`http://localhost:4000/api/oauth/google/token?${objectToQueryString(Object.fromEntries(oAuthParams))}`)
+    fetch(`http://localhost:4000/api/oauth/${provider}/token?${objectToQueryString(Object.fromEntries(oAuthParams))}`)
       .then(res => res.json())
       .then(data => {
 
@@ -91,6 +97,7 @@ export default function Login() {
           });
           localStorage.setItem("propelrToken", data.token);
           setLoading(false);
+          window.localStorage.removeItem("propelrOAuthProvider");
           navigate("/dashboard");
         }
         setUserLoading(false);
@@ -125,7 +132,12 @@ export default function Login() {
             isClosable: true,
           });
         } else {
-          setGlobalUser(jwtDecode(data.token));
+          console.log(data);
+          setGlobalUser({
+            ...jwtDecode(data.token),
+            token: data.token,
+          });
+          localStorage.setItem("propelrToken", data.token);
           navigate("/dashboard");
         }
         setLoading(false);
@@ -133,13 +145,16 @@ export default function Login() {
   }
 
   const handleOAuthClick = (e: any) => {
+
     const provider = e.currentTarget.getAttribute("data-provider");
     if (!["microsoft", "google"].includes(provider)) {
       throw new Error("Unknown provider, please refresh");
     }
 
+    window.localStorage.setItem("propelrOAuthProvider", provider);
+
     switch (provider) {
-      case "google":
+      case "google": { 
         const params = objectToQueryString({
           client_id: globals.GOOGLE_AUTH.CLIENT_ID,
           redirect_uri: "http://localhost:3000/login",
@@ -148,7 +163,19 @@ export default function Login() {
         })
         const url = `https://accounts.google.com/o/oauth2/auth?${params}`;
         window.location.href = url;
+        break; 
+      }
+      case "microsoft": {
+        const params = objectToQueryString({
+          client_id: globals.MS_AUTH.CLIENT_ID,
+          redirect_uri: "http://localhost:3000/login",
+          scope: "User.Read",
+          response_type: "code"
+        })
+        const url = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${params}`;
+        window.location.href = url;
         break;
+      }
       default: 
         console.log("you got bamboozled");
     }
