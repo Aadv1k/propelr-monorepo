@@ -7,7 +7,7 @@ import { Flow, FlowState, KeyPerms } from '../types';
 import { USER_DB } from '../models/UserRepository';
 import flowSchema from "../schemas/flow";
 import { FLOW_RUNNER } from "../models/FlowRunner";
-import runDracoQueryAndGetVar from "../common/runDracoQuery";
+import { validateDracoSyntax } from "../common/runDracoQuery";
 
 import executeFlow from "../common/executeFlow";;
 
@@ -250,7 +250,7 @@ async function createFlow(ctx: Koa.Context): Promise<void> {
   const data = ctx.request.body as Flow;
 
   try {
-    await runDracoQueryAndGetVar(data.query.syntax, data.query.vars);
+    validateDracoSyntax(data.query.syntax);
   } catch (err: any) {
     utils.sendJSONResponse(
       ctx,
@@ -298,7 +298,6 @@ async function createFlow(ctx: Koa.Context): Promise<void> {
     status: 201,
   });
 }
-
 
 async function getFlowExecute(ctx: Koa.Context): Promise<void> {
   let splitUrl = ctx.path.split('/');
@@ -403,7 +402,8 @@ async function getFlow(ctx: Koa.Context): Promise<void> {
       createdAt: e.createdAt,
       schedule: e.schedule,
       receiver: {
-        identity: e.receiver.identity 
+        identity: e.receiver.identity,
+        address: e.receiver.address,
       }
     };
   });

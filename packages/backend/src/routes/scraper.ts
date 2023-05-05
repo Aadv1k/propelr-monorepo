@@ -44,6 +44,7 @@ export default async function (ctx: Koa.Context) {
   try {
     html = await common.fetchAndCacheHtml(targetUrl, Number(timeout));
   } catch (error) {
+    console.log(error);
     utils.sendErrorResponse(ctx, ERROR.badInput);
     return;
   }

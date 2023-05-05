@@ -1,6 +1,6 @@
 import { Flow, Recipients } from '../types';
 
-import runDracoQueryAndGetVar from './runDracoQuery';
+import { runDracoQueryAndGetVar } from './runDracoQuery';
 import sendMail from './Mailer';
 
 function formatMessageFromHTMLObject(obj: any): [string, string] {
@@ -85,12 +85,10 @@ export default async function executeFlow(flow: Flow) {
   try {
     parsedVars = await runDracoQueryAndGetVar(dracoSyntax, dracoVars);
   } catch (err) {
-    return null;
+    throw err;
   }
 
-
   const [message, htmlMessage] = formatMessageFromHTMLObject(parsedVars);
-
 
   switch (flow.receiver.identity) {
     case Recipients.whatsapp:
@@ -101,6 +99,7 @@ export default async function executeFlow(flow: Flow) {
         subject: `propelr job: ${flow.id}`,
         html: htmlMessage,
       });
+      console.log("INFO: SENT")
       break;
   }
 }

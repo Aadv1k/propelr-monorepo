@@ -182,8 +182,13 @@ export default class UserRepo {
   }
 
   async RAW_getFlows(query: any) {
-    const flows = await this.flows.find(query).toArray();
-    return flows;
+    try {
+      const flows = await this.flows.find(query).toArray();
+      return flows;
+    } catch (error) {
+      console.error(error);
+      return null
+    }
   }
 
   async getFlowsByUserId(userId: string): Promise<Array<Flow> | null> {

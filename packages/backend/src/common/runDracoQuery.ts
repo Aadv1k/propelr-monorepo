@@ -1,6 +1,5 @@
 import * as draco from 'dracoql';
 
-
 export function validateDracoSyntax(syntax: string): boolean {
   try {
     const lexer = new draco.lexer(syntax);
@@ -12,7 +11,7 @@ export function validateDracoSyntax(syntax: string): boolean {
   }
 }
 
-export default function runDracoQueryAndGetVar(
+export function runDracoQueryAndGetVar(
   query: string,
   vars: Array<string>,
 ): Promise<Array<string>> | undefined {
