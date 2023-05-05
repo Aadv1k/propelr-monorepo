@@ -78,11 +78,6 @@ async function fetchHtml(baseUrl: string): Promise<string> {
   return html
 }
 
-(async () => {
-  console.log(await fetchHtml("https://thedefiant.io"));
-})();
-
-
 export default async function fetchAndCacheHtml(url: string, timeout?: number): Promise<{
   cachedAt: number,
   content: string,
@@ -91,9 +86,9 @@ export default async function fetchAndCacheHtml(url: string, timeout?: number): 
   const cacheTarget = path.join(CACHE_DIR, `${hashedUrl}.json`);
 
   if (existsSync(cacheTarget)) {
-
     const data = JSON.parse(readFileSync(cacheTarget, "utf-8"));
-    if ((Date.now() - data.cachedAt) < (timeout ?? TIMEOUT_IN_MS)) {
+    if ((Date.now() - data.cachedAt) < (timeout || TIMEOUT_IN_MS)) {
+      console.log("[INFO] /api/scraper: Cache HIT")
       return {
         cachedAt: data.cachedAt,
         content: data.content
