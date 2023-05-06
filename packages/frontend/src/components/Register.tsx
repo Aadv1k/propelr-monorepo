@@ -1,9 +1,8 @@
-import globals from "@propelr/common/globals";
 import jwtDecode from "jwt-decode";
 import { Link as RouterLink } from "react-router-dom";
 
-import oauth_config from "../../../../shared/oauth_config.json";
-import api_route_config from "../../../../shared/api_routes.json";
+import OAuthConfig from "@propelr/common/config/OAuthConfig";
+import ApiConfig from "@propelr/common/config/ApiConfig";
 
 import {
   Card,
@@ -83,9 +82,9 @@ export default function Register() {
 
     navigate(location.pathname, {});
 
-    oAuthParams.set("redirect", oauth_config.google.redirectRegister);
+    oAuthParams.set("redirect", OAuthConfig.GOOGLE_AUTH.REDIRECT);
 
-    fetch(`${api_route_config.base}/api/oauth/${provider}/token?${objectToQueryString(Object.fromEntries(oAuthParams))}`)
+    fetch(`${ApiConfig.base}/api/oauth/${provider}/token?${objectToQueryString(Object.fromEntries(oAuthParams))}`)
       .then(res => res.json())
       .then(data => {
 
@@ -142,7 +141,7 @@ export default function Register() {
     const form = new FormData(e.target as HTMLFormElement);
     const formProps = Object.fromEntries(form);
     setLoading(true);
-    fetch("${api_route_config.base}/api/users/register", {
+    fetch(`${ApiConfig.base}/api/users/register`, {
       method: "POST",
       headers: {
         "Content-type": "application/json"
@@ -187,8 +186,8 @@ export default function Register() {
     switch (provider) {
       case "google": { 
         const params = objectToQueryString({
-          client_id: oauth_config.google.clientId,
-          redirect_uri: oauth_config.google.redirectRegister,
+          client_id: OAuthConfig.GOOGLE_AUTH.CLIENT_ID,
+          redirect_uri: OAuthConfig.GOOGLE_AUTH.REDIRECT,
           scope: "email profile",
           response_type: "code"
         })
@@ -198,8 +197,8 @@ export default function Register() {
       }
       case "microsoft": {
         const params = objectToQueryString({
-          client_id: oauth_config.microsoft.clientId,
-          redirect_uri: oauth_config.microsoft.redirectRegister,
+          client_id: OAuthConfig.MS_AUTH.CLIENT_ID,
+          redirect_uri: OAuthConfig.MS_AUTH.REDIRECT,
           scope: "User.Read",
           response_type: "code"
         })
@@ -210,6 +209,7 @@ export default function Register() {
       default: 
         console.log("you got bamboozled");
     }
+      
       
   }
 

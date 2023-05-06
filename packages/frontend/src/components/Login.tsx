@@ -1,8 +1,7 @@
-import globals from "@propelr/common/globals";
 import jwtDecode from "jwt-decode";
 
-import oauth_config from "../../../../shared/oauth_config.json";
-import api_route_config from "../../../../shared/api_routes.json";
+import OAuthConfig from "@propelr/common/config/OAuthConfig";
+import ApiConfig from "@propelr/common/config/ApiConfig";
 
 import { Link as RouterLink } from "react-router-dom";
 import {
@@ -77,9 +76,9 @@ export default function Login() {
 
     navigate(location.pathname, {});
 
-    oAuthParams.set("redirect", oauth_config.[provider].redirect);
+    oAuthParams.set("redirect", OAuthConfig.GOOGLE_AUTH.REDIRECT);
 
-    fetch(`${api_route_config.base}/api/oauth/${provider}/token?${objectToQueryString(Object.fromEntries(oAuthParams))}`)
+    fetch(`${ApiConfig.base}/api/oauth/${provider}/token?${objectToQueryString(Object.fromEntries(oAuthParams))}`)
       .then(res => res.json())
       .then(data => {
 
@@ -113,7 +112,7 @@ export default function Login() {
     const formProps = Object.fromEntries(form);
     setLoading(true);
 
-    fetch("${api_route_config.base}/api/users/login", {
+    fetch(`${ApiConfig.base}/api/users/login`, {
       method: "POST",
       headers: {
         "Content-type": "application/json"
@@ -159,8 +158,8 @@ export default function Login() {
     switch (provider) {
       case "google": { 
         const params = objectToQueryString({
-          client_id: oauth_config.google.clientId,
-          redirect_uri: oauth_config.google.redirect,
+          client_id: OAuthConfig.GOOGLE_AUTH.CLIENT_ID,
+          redirect_uri: OAuthConfig.GOOGLE_AUTH.REDIRECT,
           scope: "email profile",
           response_type: "code"
         })
@@ -170,8 +169,8 @@ export default function Login() {
       }
       case "microsoft": {
         const params = objectToQueryString({
-          client_id: oauth_config.microsoft.clientId,
-          redirect_uri: oauth_config.microsoft.redirect,
+          client_id: OAuthConfig.MS_AUTH.CLIENT_ID,
+          redirect_uri: OAuthConfig.MS_AUTH.REDIRECT,
           scope: "User.Read",
           response_type: "code"
         })
