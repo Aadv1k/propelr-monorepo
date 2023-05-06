@@ -1,4 +1,4 @@
-import { GET } from './http';
+import { GET } from "./http";
 
 export default async function (email: string, isProd?: boolean, key?: string): Promise<boolean> {
   const EMAIL_REG = /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;

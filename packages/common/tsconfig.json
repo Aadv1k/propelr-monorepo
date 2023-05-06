@@ -3,7 +3,7 @@
   "compilerOptions": {
     "outDir": "./dist"
   },
-  "include": ["./*.ts"],
+  "include": ["./node/*.ts"],
   "rootDir": "./",
   "exclude": ["../../node_modules"]
 }
