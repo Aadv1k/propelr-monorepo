@@ -2,6 +2,7 @@ import { useContext, useState, useEffect, useRef } from 'react';
 import UserContext from '../context/UserContext';
 import unique from 'unique-selector';
 
+import ApiConfig from "@propelr/common/config/ApiConfig";
 
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
@@ -140,18 +141,8 @@ function BrowserPane({
     setSelectedHtml({});
 
     const fetchData = async () => {
-      /*
-      const response = await fetch(`http://localhost:4000/api/scraper?url=${encodeURIComponent(url)}`, { headers: { Authorization: `Bearer ${globalUser.token}`, } })
-      const data = await response.json();
-      if (data.status !== 200) {
-        setError(true);
-      }  else {
-        setHtml(data.data.content);
-      }
-       */
-
       const xhr = new XMLHttpRequest();
-      xhr.open('GET', `http://localhost:4000/api/scraper?url=${encodeURIComponent(url)}`, true);
+      xhr.open('GET', `${ApiConfig.base}/api/scraper?url=${encodeURIComponent(url)}`, true);
       xhr.setRequestHeader('Authorization', `Bearer ${globalUser.token}`)
 
       xhr.onprogress = (event) => {
@@ -429,7 +420,7 @@ function ControlPanel({ selectedHtml, url }: { selectedHtml: Array<string>; url:
     let response;
 
     try {
-      response = await fetch('http://localhost:4000/api/flows/', {
+      response = await fetch(`${ApiConfig.base}/api/flows/`, {
         method: 'POST',
         headers: {
           Authorization: 'Bearer ' + globalUser.token,

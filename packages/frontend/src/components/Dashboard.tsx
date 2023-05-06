@@ -5,6 +5,8 @@ import { useToast } from '@chakra-ui/react';
 
 import { Link as RouterLink } from 'react-router-dom';
 
+import ApiConfig from "@propelr/common/config/ApiConfig";
+
 import jwtDecode from 'jwt-decode';
 
 import {
@@ -80,7 +82,7 @@ function FlowListItem(props: any) {
   const handleFlowStop = (e: any) => {
     setFlowLoading(true);
     const flowIdentity = e.currentTarget.getAttribute('data-identity');
-    fetch(`http://localhost:4000/api/flows/${flowIdentity}/stop`, {
+    fetch(`${ApiConfig.base}/api/flows/${flowIdentity}/stop`, {
       method: 'GET',
       headers: {
         Authorization: 'Bearer ' + globalUser.token,
@@ -104,7 +106,7 @@ function FlowListItem(props: any) {
   const handleFlowStart = (e: any) => {
     setFlowLoading(true);
     const flowIdentity = e.currentTarget.getAttribute('data-identity');
-    fetch(`http://localhost:4000/api/flows/${flowIdentity}/start`, {
+    fetch(`${ApiConfig.base}/api/flows/${flowIdentity}/start`, {
       method: 'GET',
       headers: {
         Authorization: 'Bearer ' + globalUser.token,
@@ -128,7 +130,7 @@ function FlowListItem(props: any) {
   const handleFlowExecute = (e: any) => {
     setFlowLoading(true);
     const flowIdentity = e.currentTarget.getAttribute('data-identity');
-    fetch(`http://localhost:4000/api/flows/${flowIdentity}/execute`, {
+    fetch(`${ApiConfig.base}/api/flows/${flowIdentity}/execute`, {
       method: 'GET',
       headers: {
         Authorization: 'Bearer ' + globalUser.token,
@@ -277,7 +279,7 @@ export default function Dashboard() {
     setFlowsLoading(true);
 
     try {
-      fetch('http://localhost:4000/api/flows', {
+      fetch(`${ApiConfig.base}/api/flows`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${globalUser.token}`,
