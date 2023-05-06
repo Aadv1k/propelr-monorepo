@@ -1,9 +1,8 @@
 import Koa from 'koa';
-import * as draco from 'dracoql';
 
 import { ERROR, JWT_SECRET } from '../common/const';
 import * as utils from '../common/utils';
-import * as common from '@propelr/common';
+import * as common from '@propelr/common/node';
 import { Key } from '../types';
 import { USER_DB } from '../models/UserRepository';
 import keySchema from '../schemas/key';

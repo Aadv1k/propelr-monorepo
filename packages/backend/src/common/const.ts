@@ -2,6 +2,8 @@ import { httpErrors } from '../types';
 import dotenv from 'dotenv';
 import path from "node:path";
 
+import OAuthConfig from "@propelr/common/config/OAuthConfig";
+
 dotenv.config({
   path: path.resolve(__dirname, "../../../.env"),
 });
@@ -21,17 +23,14 @@ export const MAIL = {
   password: process.env.MAIL_PASSWORD,
 }
 
-
 export const GOOGLE_AUTH = {
-  CLIENT_ID: process.env.GOOGLE_CLIENT_ID ?? '',
+  CLIENT_ID: OAuthConfig.GOOGLE_AUTH.CLIENT_ID,
   CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ?? '',
-  REDIRECT: `http://localhost:${PORT}/api/oauth/google/callback`,
 };
 
 export const MS_AUTH = {
-  CLIENT_ID: process.env.MS_CLIENT_ID ?? '',
+  CLIENT_ID: OAuthConfig.MS_AUTH.CLIENT_ID,
   CLIENT_SECRET: process.env.MS_CLIENT_SECRET ?? '',
-  REDIRECT: `http://localhost:${PORT}/api/oauth/microsoft/callback`,
 };
 
 export const ATLAS = {

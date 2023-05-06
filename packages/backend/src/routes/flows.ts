@@ -2,12 +2,11 @@ import Koa from 'koa';
 
 import { ERROR, JWT_SECRET } from '../common/const';
 import * as utils from '../common/utils';
-import * as common from '@propelr/common';
+import * as common from '@propelr/common/node';
 import { Flow, FlowState, KeyPerms } from '../types';
 import { USER_DB } from '../models/UserRepository';
 import flowSchema from "../schemas/flow";
 import { FLOW_RUNNER } from "../models/FlowRunner";
-import { validateDracoSyntax } from "../common/runDracoQuery";
 
 import executeFlow from "../common/executeFlow";;
 
@@ -250,7 +249,7 @@ async function createFlow(ctx: Koa.Context): Promise<void> {
   const data = ctx.request.body as Flow;
 
   try {
-    validateDracoSyntax(data.query.syntax);
+    common.dracoQueryRunner.validateSyntax(data.query.syntax);
   } catch (err: any) {
     utils.sendJSONResponse(
       ctx,

@@ -7,7 +7,7 @@ import {
 } from '../common/utils';
 
 import { USER_DB } from '../models/UserRepository';
-import * as common from "@propelr/common";
+import * as common from "@propelr/common/node";
 
 async function handleGet(ctx: Koa.Context): Promise<void> {
   let users = await USER_DB.getUsers();

@@ -3,7 +3,7 @@ import bodyParser from 'koa-bodyparser';
 import passport from 'koa-passport';
 import koaCors from "@koa/cors";
 
-import { routeOAuth, routeOAuthCallback, routeOAuthToken } from './routes/oauth';
+import routeOAuthCallback from './routes/oauth';
 
 import routeRegister from './routes/register';
 import routeLogin from './routes/login';
@@ -81,11 +81,7 @@ app.use(async (ctx: Koa.Context, next) => {
     await routeUsersDelete(ctx);
   } else if (ctx.url.match(ROUTES['/api/oauth/:id/callback']) && ctx.method === 'GET') {
     await routeOAuthCallback(ctx, next);
-  } else if (ctx.url.match(ROUTES['/api/oauth/:id/token']) && ctx.method === "GET") {
-    await routeOAuthToken(ctx, next);
-  } else if (ctx.url.match(ROUTES['/api/oauth/:id']) && ctx.method === "GET") {
-    await routeOAuth(ctx, next); }
-    else if (ctx.url.match(ROUTES['/api/developers/keys']) && ctx.method === "POST") {
+  } else if (ctx.url.match(ROUTES['/api/developers/keys']) && ctx.method === "POST") {
     await createKey(ctx);
   } else if (ctx.url.startsWith("/api/scraper") && ctx.method === "GET") {
     await routeScraper(ctx);

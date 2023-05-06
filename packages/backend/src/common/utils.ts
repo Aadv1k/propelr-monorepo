@@ -1,15 +1,15 @@
 import { httpError, Schedule } from '../types';
 import { ERROR, JWT_SECRET } from "./const";
-import { bloomTable as BloomTable, jwt} from '@propelr/common';
+import { bloomTable as BloomTable, jwt} from '@propelr/common/node';
 import crypto from 'node:crypto';
-import * as draco from "dracoql";
 
 import Koa from 'koa';
 import Ajv from "ajv";
 
 const AJV = new Ajv();
 
-export const invalidEmailBloomTable = new BloomTable(15000, 10);
+// bloom table will probably fail :/
+export const invalidEmailBloomTable = new BloomTable(15_000, 10);
 
 export function generateCronExpressionFromSchedule(schedule: Schedule): string | null {
   let cronExpression = '';
@@ -46,7 +46,6 @@ export function sendErrorResponse(ctx: Koa.Context, err: httpError) {
   ctx.status = err.status;
 }
 
-
 export function validateSchema(input: any, schema: any): boolean {
   const validator = AJV.compile(schema);
   const schemaValid = validator(input)
@@ -59,18 +58,6 @@ export function validateTokenOrSendError(ctx: Koa.Context): void {
   if (!ctx.headers.authorization || !popped || !jwt.verify(popped, JWT_SECRET)) {
     sendErrorResponse(ctx, ERROR.unauthorized);
     return;
-  }
-}
-
-export function verifyDracoSyntax(syn: string): boolean {
-
-  try {
-    const lexer = new draco.lexer(syn);
-    const parser = new draco.parser(lexer.lex())
-    parser.parse();
-    return true;
-  } catch (err) {
-    return false;
   }
 }
 

@@ -9,7 +9,7 @@ import {
   md5,
   validateSchema,
 } from '../common/utils';
-import * as common from '@propelr/common';
+import * as common from '@propelr/common/node';
 import { User } from '../types';
 import { USER_DB } from '../models/UserRepository';
 

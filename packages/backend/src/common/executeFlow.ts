@@ -1,7 +1,7 @@
 import { Flow, Recipients } from '../types';
 
-import { runDracoQueryAndGetVar } from './runDracoQuery';
-import sendMail from './Mailer';
+import { dracoQueryRunner } from '@propelr/common/node';
+import sendMail from './sendMail';
 
 function formatMessageFromHTMLObject(obj: any): [string, string] {
   let links: Array<string> = [],
@@ -83,7 +83,7 @@ export default async function executeFlow(flow: Flow) {
   let parsedVars;
 
   try {
-    parsedVars = await runDracoQueryAndGetVar(dracoSyntax, dracoVars);
+    parsedVars = await dracoQueryRunner.runDracoQueryAndGetVar(dracoSyntax, dracoVars);
   } catch (err) {
     throw err;
   }
@@ -99,7 +99,6 @@ export default async function executeFlow(flow: Flow) {
         subject: `propelr job: ${flow.id}`,
         html: htmlMessage,
       });
-      console.log("INFO: SENT")
       break;
   }
 }

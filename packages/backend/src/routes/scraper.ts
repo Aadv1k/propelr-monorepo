@@ -2,7 +2,7 @@ import Koa from 'koa';
 
 import { ERROR, JWT_SECRET } from '../common/const';
 import * as utils from '../common/utils';
-import * as common from '@propelr/common';
+import * as common from '@propelr/common/node';
 
 async function verifyAndparseJwtTokenFromHeader(ctx: Koa.Context): Promise<any | null> {
   if (!ctx.headers?.['authorization']) return null;

@@ -4,7 +4,7 @@ import { USER_DB } from './models/UserRepository';
 
 import { Flow, FlowState } from "./types";
 import { FLOW_RUNNER } from "./models/FlowRunner";
-import executeFlow from "./common/executeFlow";;
+import executeFlow from "./common/executeFlow";
 
 async function startFlowsAfterInit() {
   let flows = await USER_DB.RAW_getFlows({});

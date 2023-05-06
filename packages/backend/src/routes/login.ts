@@ -1,18 +1,26 @@
 import Koa from 'koa';
 
-import { ERROR, JWT_SECRET } from '../common/const';
-import { sendErrorResponse, sendJSONResponse, md5, validateSchema } from '../common/utils';
-
-import * as common from '@propelr/common';
+import { ERROR, isProd, ABSTRACT_API, JWT_SECRET } from '../common/const';
+import {
+  sendErrorResponse,
+  invalidEmailBloomTable,
+  sendJSONResponse,
+  generateId,
+  md5,
+  validateSchema,
+} from '../common/utils';
+import * as common from '@propelr/common/node';
 import { User } from '../types';
 import { USER_DB } from '../models/UserRepository';
+
+import userSchema from '../schemas/user';
 
 export default async function (ctx: Koa.Context): Promise<void> {
   if (ctx.method !== 'POST') {
     sendErrorResponse(ctx, ERROR.invalidMethod);
     return;
   }
-  if (!ctx.is('json')) {
+  if (ctx.headers?.['content-type'] !== "application/json") {
     sendErrorResponse(ctx, ERROR.invalidMime);
     return;
   }
@@ -20,38 +28,66 @@ export default async function (ctx: Koa.Context): Promise<void> {
     sendErrorResponse(ctx, ERROR.invalidJSON);
     return;
   }
-
-  const reqBody: any = ctx.request.body;
-
-  if (!reqBody.email || !reqBody.password) {
+  if (!validateSchema(ctx.request.body, userSchema)) {
     sendErrorResponse(ctx, ERROR.badInput);
     return;
   }
 
   const data = ctx.request.body as User;
-  const foundUser = await USER_DB.getUserByEmail(data.email);
 
-  if (!foundUser) {
-    sendErrorResponse(ctx, ERROR.userNotFound);
+  let isEmailValid;
+  const emailExistsInBloomTable = invalidEmailBloomTable.exists(data.email);
+
+  if (emailExistsInBloomTable) {
+    isEmailValid = false;
+  } else {
+    isEmailValid = await common.validateEmail(data.email, isProd, ABSTRACT_API.KEY);
+  }
+
+  if (!isEmailValid) {
+    sendErrorResponse(ctx, ERROR.emailInvalid);
+    if (!emailExistsInBloomTable) {
+      invalidEmailBloomTable.push(data.email);
+    }
     return;
   }
 
-  if (foundUser.password !== md5(data.password)) {
-    sendErrorResponse(ctx, ERROR.invalidPassword);
+  const foundUser = await USER_DB.getUserByEmail(data.email);
+
+  if (foundUser) {
+    sendErrorResponse(ctx, ERROR.userAlreadyExists);
+    return;
+  }
+
+  const user: User = {
+    id: generateId(8),
+    email: data.email,
+    password: md5(data.password),
+    username: data.username,
+  };
+
+  const pushedUser: User | null = await USER_DB.pushUser(user);
+
+  if (!pushedUser) {
+    sendErrorResponse(ctx, ERROR.internalError);
     return;
   }
 
   const jwt_payload: any = {
-    id: foundUser.id,
-    email: foundUser.email,
-    username: foundUser.username,
+    id: pushedUser.id,
+    email: pushedUser.email,
+    username: pushedUser.username
   };
 
   const token = common.jwt.sign(jwt_payload, JWT_SECRET);
 
   sendJSONResponse(ctx, {
-    message: 'Login successful',
-    token,
+    success: {
+      message: 'Successfully registered',
+      data: {
+        token,
+      },
+    },
     status: 200,
   });
 }
