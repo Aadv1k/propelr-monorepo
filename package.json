@@ -10,6 +10,7 @@
     "build": "./scripts/pre-build.sh && npm install --ws && npm run build --ws",
     "build:backend": "./scripts/build-backend.sh",
     "start:backend": "node ./dist/backend/",
+    "build:frontend": "./scripts/pre-build.sh && ./scripts/build-frontend.sh",
     "clean": "./scripts/cleanup.sh"
   },
   "author": "Aadvik<aadv1k@outlook.com>",
