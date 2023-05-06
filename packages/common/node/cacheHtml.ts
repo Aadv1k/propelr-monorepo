@@ -48,7 +48,10 @@ async function injectCSS(url: string, page: any) {
 }
 
 async function fetchHtml(baseUrl: string): Promise<string> {
-  const browser = await puppeteer.launch({headless: "new"});
+  const browser = await puppeteer.launch({
+    args: ['--no-sandbox'],
+    headless: "new",
+  });
   const page = await browser.newPage();
   await page.setExtraHTTPHeaders({ 'user-agent': 'mozilla/5.0 (windows nt 10.0; win64; x64; rv:109.0) gecko/20100101 firefox/112.0w'});
   await page.goto(baseUrl, { waitUntil: 'networkidle2' });

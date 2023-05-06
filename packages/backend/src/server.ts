@@ -79,7 +79,7 @@ app.use(async (ctx: Koa.Context, next) => {
     await routeUsersGet(ctx);
   } else if (ctx.url.match(ROUTES['/api/users']) && ctx.method === 'DELETE') {
     await routeUsersDelete(ctx);
-  } else if (ctx.url.match(ROUTES['/api/oauth/:id/callback']) && ctx.method === 'GET') {
+  } else if (ctx.url.match(ROUTES['/api/oauth/:id/token']) && ctx.method === 'GET') {
     await routeOAuthCallback(ctx, next);
   } else if (ctx.url.match(ROUTES['/api/developers/keys']) && ctx.method === "POST") {
     await createKey(ctx);
