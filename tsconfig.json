@@ -4,7 +4,7 @@
     "module": "commonjs",
     "strict": true,
     "esModuleInterop": true,
-    "outDir": "./dist",
+    "outDir": "../../dist/common",
     "baseUrl": "./",
     "paths": {
       "*": ["node_modules/*"]

@@ -7,8 +7,8 @@
   "description": "propel your productivty and data to heights. From calendars to jobs portals connect everything to your favourite communications",
   "main": "index.js",
   "scripts": {
-    "format": "prettier --write */**",
-    "lint": "echo \"Putting lipstick on bad code, will not make the code good.\" "
+    "build": "./scripts/pre-build.sh && npm install --ws && npm run build --ws",
+    "clean": "./scripts/cleanup.sh"
   },
   "author": "Aadvik<aadv1k@outlook.com>",
   "license": "MIT",
