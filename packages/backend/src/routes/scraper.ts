@@ -2,7 +2,7 @@ import Koa from 'koa';
 
 import { ERROR, JWT_SECRET } from '../common/const';
 import * as utils from '../common/utils';
-import * as common from '@propelr/common/node';
+import { node } from '@propelr/common';
 
 async function verifyAndparseJwtTokenFromHeader(ctx: Koa.Context): Promise<any | null> {
   if (!ctx.headers?.['authorization']) return null;
@@ -12,9 +12,9 @@ async function verifyAndparseJwtTokenFromHeader(ctx: Koa.Context): Promise<any |
 
   if (!scheme && !token) return null;
 
-  if (!common.jwt.verify(token, JWT_SECRET)) return null;
+  if (!node.jwt.verify(token, JWT_SECRET)) return null;
 
-  return common.jwt.parse(token);
+  return node.jwt.parse(token);
 }
 
 export default async function (ctx: Koa.Context) {
@@ -42,7 +42,7 @@ export default async function (ctx: Koa.Context) {
   let html: any;
 
   try {
-    html = await common.fetchAndCacheHtml(targetUrl, Number(timeout));
+    html = await node.fetchAndCacheHtml(targetUrl, Number(timeout));
   } catch (error) {
     console.log(error);
     utils.sendErrorResponse(ctx, ERROR.badInput);

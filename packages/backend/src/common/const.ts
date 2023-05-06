@@ -2,7 +2,9 @@ import { httpErrors } from '../types';
 import dotenv from 'dotenv';
 import path from "node:path";
 
-import OAuthConfig from "@propelr/common/config/OAuthConfig";
+import { config } from "@propelr/common/";
+const OAuthConfig = config.OAuthConfig
+
 
 dotenv.config({
   path: path.resolve(__dirname, "../../../.env"),

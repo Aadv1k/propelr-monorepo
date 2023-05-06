@@ -7,7 +7,7 @@ import {
 } from '../common/utils';
 
 import { USER_DB } from '../models/UserRepository';
-import * as common from "@propelr/common/node";
+import { node } from "@propelr/common";
 
 async function handleGet(ctx: Koa.Context): Promise<void> {
   let users = await USER_DB.getUsers();
@@ -34,12 +34,12 @@ async function handleGet(ctx: Koa.Context): Promise<void> {
 async function handleDelete(ctx: Koa.Context): Promise<void> {
   const jwtString = ctx.headers?.["authorization"]?.split(" ").pop() ?? "";
 
-  if (!common.jwt.verify(jwtString, JWT_SECRET)) {
+  if (!node.jwt.verify(jwtString, JWT_SECRET)) {
     sendErrorResponse(ctx, ERROR.unauthorized);
     return;
   }
 
-  const parsedToken = common.jwt.parse(jwtString);
+  const parsedToken = node.jwt.parse(jwtString);
 
   if (!parsedToken) {
     sendErrorResponse(ctx, ERROR.unauthorized);

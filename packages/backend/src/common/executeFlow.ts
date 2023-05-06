@@ -1,6 +1,6 @@
 import { Flow, Recipients } from '../types';
 
-import { dracoQueryRunner } from '@propelr/common/node';
+import { node as common } from '@propelr/common';
 import sendMail from './sendMail';
 
 function formatMessageFromHTMLObject(obj: any): [string, string] {
@@ -83,7 +83,7 @@ export default async function executeFlow(flow: Flow) {
   let parsedVars;
 
   try {
-    parsedVars = await dracoQueryRunner.runDracoQueryAndGetVar(dracoSyntax, dracoVars);
+    parsedVars = await common.dracoQueryRunner.runDracoQueryAndGetVar(dracoSyntax, dracoVars);
   } catch (err) {
     throw err;
   }

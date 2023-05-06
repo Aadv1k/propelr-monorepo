@@ -2,7 +2,7 @@ import Koa from 'koa';
 
 import { ERROR, JWT_SECRET } from '../common/const';
 import * as utils from '../common/utils';
-import * as common from '@propelr/common/node';
+import { node } from '@propelr/common';
 import { Key } from '../types';
 import { USER_DB } from '../models/UserRepository';
 import keySchema from '../schemas/key';
@@ -10,12 +10,12 @@ import keySchema from '../schemas/key';
 async function createKey(ctx: Koa.Context): Promise<void> {
   const jwtString = ctx.headers?.['authorization']?.split(' ').pop() ?? '';
 
-  if (!common.jwt.verify(jwtString, JWT_SECRET)) {
+  if (!node.jwt.verify(jwtString, JWT_SECRET)) {
     utils.sendErrorResponse(ctx, ERROR.unauthorized);
     return;
   }
 
-  const parsedToken = common.jwt.parse(jwtString);
+  const parsedToken = node.jwt.parse(jwtString);
 
   if (ctx.headers['content-type'] !== 'application/json') {
     utils.sendErrorResponse(ctx, ERROR.invalidMime);
@@ -64,12 +64,12 @@ async function createKey(ctx: Koa.Context): Promise<void> {
 async function getKeys(ctx: Koa.Context) {
   const jwtString = ctx.headers?.['authorization']?.split(' ').pop() ?? '';
 
-  if (!common.jwt.verify(jwtString, JWT_SECRET)) {
+  if (!node.jwt.verify(jwtString, JWT_SECRET)) {
     utils.sendErrorResponse(ctx, ERROR.unauthorized);
     return;
   }
 
-  const parsedToken = common.jwt.parse(jwtString);
+  const parsedToken = node.jwt.parse(jwtString);
 
   let keys = await USER_DB.getKeysByUserId(parsedToken.id);
 
@@ -100,11 +100,11 @@ async function deleteKey(ctx: Koa.Context): Promise<void> {
 
   const jwtString = ctx.headers?.['authorization']?.split(' ').pop() ?? '';
 
-  if (!common.jwt.verify(jwtString, JWT_SECRET)) {
+  if (!node.jwt.verify(jwtString, JWT_SECRET)) {
     utils.sendErrorResponse(ctx, ERROR.unauthorized);
     return;
   }
-  const parsedToken = common.jwt.parse(jwtString);
+  const parsedToken = node.jwt.parse(jwtString);
 
   const keyExists = await USER_DB.getKey(keyToDelete);
   if (!keyExists) {

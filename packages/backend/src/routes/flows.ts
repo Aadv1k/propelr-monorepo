@@ -2,7 +2,7 @@ import Koa from 'koa';
 
 import { ERROR, JWT_SECRET } from '../common/const';
 import * as utils from '../common/utils';
-import * as common from '@propelr/common/node';
+import { node as common } from '@propelr/common';
 import { Flow, FlowState, KeyPerms } from '../types';
 import { USER_DB } from '../models/UserRepository';
 import flowSchema from "../schemas/flow";

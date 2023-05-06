@@ -1,6 +1,10 @@
 import { httpError, Schedule } from '../types';
 import { ERROR, JWT_SECRET } from "./const";
-import { bloomTable as BloomTable, jwt} from '@propelr/common/node';
+import { node } from '@propelr/common';
+const jwt = node.jwt;
+const BloomTable = node.bloomTable; 
+
+
 import crypto from 'node:crypto';
 
 import Koa from 'koa';

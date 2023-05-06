@@ -1,15 +1,12 @@
 import Koa from 'koa';
-import passport from 'koa-passport';
-
-import { Strategy as GoogleStrategy } from 'passport-google-oauth2';
-import { Strategy as MicrosoftStategy } from 'passport-microsoft';
 
 import { GOOGLE_AUTH, MS_AUTH, OAuthSchemes, ERROR, JWT_SECRET } from '../common/const';
 import { sendErrorResponse, generateId, sendJSONResponse } from '../common/utils';
 
 import { User } from '../types';
 import UserRepo from '../models/UserRepository';
-import * as common from '@propelr/common/node';
+import { node } from '@propelr/common';
+const jwt = node.jwt;
 
 import fetch from 'node-fetch';
 
@@ -98,7 +95,7 @@ async function findUserOrCreateUserToken(user: User): Promise<string | null> {
   const foundUser = await USER_DB.getUserByEmail(user.email);
 
   if (foundUser) {
-    const token = common.jwt.sign(
+    const token = jwt.sign(
       {
         id: foundUser.id,
         email: foundUser.email,
@@ -127,7 +124,7 @@ async function findUserOrCreateUserToken(user: User): Promise<string | null> {
     username: pushedUser.username,
   };
 
-  const token = common.jwt.sign(jwt_payload, JWT_SECRET);
+  const token = jwt.sign(jwt_payload, JWT_SECRET);
   return token;
 }
 
