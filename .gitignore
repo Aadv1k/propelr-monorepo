@@ -4,3 +4,6 @@ node_modules/
 dist/
 html-cache/
 
+
+# Local Netlify folder
+.netlify
