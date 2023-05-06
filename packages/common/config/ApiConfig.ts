@@ -1,5 +1,5 @@
 export default {
-  base: "http://localhost:4000"
+  base: "https://ap-propelr-api.up.railway.app"
 }
 
 

@@ -8,6 +8,8 @@
   "main": "index.js",
   "scripts": {
     "build": "./scripts/pre-build.sh && npm install --ws && npm run build --ws",
+    "build:backend": "./scripts/build-backend.sh",
+    "start:backend": "node ./dist/backend/",
     "clean": "./scripts/cleanup.sh"
   },
   "author": "Aadvik<aadv1k@outlook.com>",

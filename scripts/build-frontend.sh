@@ -1,10 +1,10 @@
 #!/bin/bash
 
 COMMON="@propelr/common"
-BACKEND="@propelr/backend"
+FRONTEND="@propelr/frontend"
 
 npm install --workspace="$COMMON"
-npm install --workspace="$BACKEND"
+npm install --workspace="$FRONTEND"
 
 npm run build --workspace="$COMMON"
-npm run build --workspace="$BACKEND"
+npm run build --workspace="$FRONTEND"

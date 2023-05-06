@@ -33,12 +33,12 @@ tsConfigFile=$(cat << EOF
 export default {
   GOOGLE_AUTH: {
     CLIENT_ID: "$GOOGLE_CLIENT_ID" ,
-    REDIRECT: 'http://localhost:3000/register',
+    REDIRECT: 'https://ap-propelr.up.railway.app/register',
   },
 
   MS_AUTH: {
     CLIENT_ID:  "$MICROSOFT_CLIENT_ID",
-    REDIRECT: 'http://localhost:3000/register',
+    REDIRECT: 'https://ap-propelr.up.railway.app/register',
   }
 }
 EOF

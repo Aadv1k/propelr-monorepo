@@ -1,9 +1,21 @@
-[build]
-  builder = "nixpacks"
-  buildCommand = "npm run build:backend"
+[[services]]
+  name = "propelr-backend"
 
-[deploy]
-  startCommand = "npm run start:backend"
+  [services.build]
+    builder = "nixpacks"
+    build_command = "npm run build:backend"
 
-[variables]
-  command = "cat .env"
+  [services.deploy]
+    startCommand = "npm run start:backend"
+
+
+[[services]]
+  name = "propelr-frontend"
+
+  [services.build]
+    builder = "nixpacks"
+    build_command = "npm run build:frontend"
+
+  [services.deploy]
+    startCommand = "npm run start:frontend"
+
