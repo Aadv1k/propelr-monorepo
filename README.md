@@ -94,4 +94,132 @@ the frontend is not very clean, it need to go through a major refactor [See issu
 
 ### Backend
 
-TODO: Document the backend
+the backend for the app is built using Koa + TypeScript, it follows a (mostly) pure RESTFul architechture. To get started, first run these commands:
+
+```shell
+npm run build:backend
+npm run start:backend
+```
+
+This will start a local dev server at `4000`.
+
+If you navigate to `./packages/backend/src/` you will see the following files:
+
+
+- `common/` Contains the shared constants and utilities among the code base
+- `models/` This contains the code for interacting with our `MongoDB` databse 
+- `routes/` Each file within routes corresponds to an API route
+- `server.ts` This exports a koa server which is consumed by the `index.ts` 
+
+#### API
+
+Let's briefly discuss all of the paths within the propelr API
+
+
+
+##### `GET /api/users`
+
+get a list of all userid's within the system
+
+##### `DELETE /api/users` 
+
+- ***Auth required***
+
+deletes the user being requested via the JWT token 
+
+##### `POST /api/users/login`
+
+Login workflow, check if a user exists return error otherwise
+
+```json
+{
+	"email": "john@doe.com"
+	"password": "123"
+}
+```
+
+
+##### `POST /api/users/register`
+
+The signup workflow, check if a user doesn't exist, return error otherwise
+
+When `process.env.NODE_ENV` is set to production, this route uses `Abstract API` to ensure the validity of the email.
+
+```json
+{
+	"username": "john"
+	"email": "john@doe.com"
+	"password": "123"
+}
+```
+	
+##### `GET /api/oauth/:id/token`
+
+where `:id`
+- `google`
+- `microsoft`
+
+Our API implements the logic for an "OAuth callback", this means that it will extract the `authToken` from the URL and use it to fetch the user's email from the given service, if user found it will return the token for them or create one and do the same
+
+
+##### `POST /api/flows`
+
+- ***Auth required***
+
+Creates a new flow for the user extracted via the JWT token
+
+```json
+{
+	query: {
+		syntax: "VAR data = FETCH \"https://api.kanye.rest\"",
+		vars: ["data"]
+	},
+	
+	schedule: {
+		type: "daily",
+		time: "10:30"
+	},
+	
+	receiver: {
+		identity: "email",
+		address: "hi@example.com"
+	}
+
+}
+```
+
+Here is a breakdown of this schema
+
+- `query.syntax`: this requires a valid [DracoQL](https://github.com/aadv1k/dracoql) syntax, this is the primary engine for the entire app and it is what fetches the actual html
+- `query.vars`: required to extract the given variables from the interpreter of DracoQL
+
+- `schedule.type`: `daily | none` defines how when the query should be run
+- `schedule.time?`: Defines when the query should run if set to `daily`
+
+- `receiver.identity`: `email | whatsapp` This defines to whom the extracted data must be sent to
+- `receiver.address`: defines the address of the receiver, eg email or phone number
+
+##### `DELETE /api/flows/:id`
+
+- ***Auth required***
+
+delete the provided flow for the user
+
+##### `GET /api/flows/:id/execute`
+
+- ***Auth required***
+
+This will immediately execute the provided query and send it to the provided address
+
+
+##### `GET /api/flows/:id/start`
+
+- ***Auth required***
+
+This will "start the flow" which means it will run at the provided time. All flows are ***stopped*** by default.
+
+##### `GET /api/flows/:id/stop`
+
+- ***Auth required***
+
+This will "stop the flow" which means it will not run at the provided time. 
