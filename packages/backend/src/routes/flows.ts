@@ -8,7 +8,7 @@ import { USER_DB } from '../models/UserRepository';
 import flowSchema from "../schemas/flow";
 import { FLOW_RUNNER } from "../models/FlowRunner";
 
-import executeFlow from "../common/executeFlow";;
+import executeFlow from "../common/executeFlow";
 
 async function parseApiKey(ctx: Koa.Context): Promise<any | null> {
   if (!ctx.headers?.['x-api-key']) return null;
@@ -347,7 +347,7 @@ async function getFlowExecute(ctx: Koa.Context): Promise<void> {
     utils.sendJSONResponse(ctx, {
       name: err.name,
       message: err.message,
-    });
+    }, 500);
     return;
   }
   const end: any = new Date();
