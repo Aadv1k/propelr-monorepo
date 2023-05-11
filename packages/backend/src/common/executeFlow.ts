@@ -3,19 +3,23 @@ import { Flow, Recipients } from '../types';
 import { node as common } from '@propelr/common';
 import sendMail from './sendMail';
 
-function formatMessageFromHTMLObject(obj: any): [string, string] {
-  let links: Array<string> = [],
-    text: Array<string> = [],
-    image: Array<string> = [];
+function recursiveHtmlParser(obj: any) {
+		let items: any = {
+				links: [],
+				images: [],
+				texts: [],
+		} 
 
-  for (const item of obj) {
-    const target = item.value;
-    switch (target.tag) {
+		let target = obj;
+
+   		
+
+    switch (obj?.tag) {
       case 'a':
-        links.push(target.attributes.href);
+        items.links.push(target.attributes.href);
         break;
       case 'img':
-        image.push(target.attributes.src);
+        items.images.push(target.attributes.src);
         break;
       case 'h1':
       case 'h2':
@@ -23,56 +27,45 @@ function formatMessageFromHTMLObject(obj: any): [string, string] {
       case 'h4':
       case 'h5':
       case 'h6':
-        text.push(target.children[0].text);
+        items.texts.push(target.children[0].text);
         break;
       case 'b':
       case 'i':
       case 'em':
       case 'strong':
       case 'p':
-        text.push(target.children[0].text);
-        break;
-    }
-  }
-
-  const pad = '='.repeat(16);
-
-  const textBlob = `${pad}TEXT${pad}\n`;
-  const linkBlob = `${pad}LINKS${pad}\n`;
-  const imageBlob = `${pad}IMAGES${pad}\n`;
-
-  let out = `${textBlob}\n${text.join('\n')}\n${linkBlob}\n${links.join(
-    '\n',
-  )}\n${imageBlob}\n${image.join('\n')}\n\n`;
-
-  let outHtml = `
-    ${
-      text.length !== 0
-        ? `<h2>TEXT</h2>
-        ${text.map((e) => `<p>${e}</p>`).join('\n')}
-      <br> 
-  `
-        : ''
+						items.texts.push(target.children[0].text);
+						break;
+				case 'div':
+				case 'article':
+				case 'section':
+				case 'main':
+				case 'aside':
+						const ret = target.children.forEach(e => {
+								let ret = recursiveHtmlParser(e);
+								items.texts.push(...ret.texts)
+								items.images.push(...ret.images)
+								items.links.push(...ret.links)
+						});
+						break;
     }
 
-    ${
-      links.length !== 0
-        ? `<h2>LINKS</h2>
-        ${links.map((e) => `<p>${e}</p>`).join('\n')}
-      <br>
-  `
-        : ''
-    }
+		return items;
+}
 
-    ${
-      image.length !== 0
-        ? `<h2>IMAGES</h2>
-        ${image.map((e) => `<p>${e}</p>`).join('\n')}
-      <br>
-  `
-        : ''
-    }
-  `;
+
+function formatMessageFromHTMLObject(obj: any): [string, string] {
+		let parsedItems = recursiveHtmlParser(obj[0].value);
+
+		let itemList = Object.keys(parsedItems).filter(e => parsedItems[e].length > 0);
+		const outHtml = itemList.map((e: string) => {
+				return `<center><h2>${e.toUpperCase()}</h2></center>\n<ul>` + parsedItems[e].map((it: any) => `<li>${it}</li>`).join("\n") + "</ul><br>";
+		}).join("<hr>")
+
+		const out = Object.keys(parsedItems).map((e: string) => {
+				return `${e.toUpperCase()}\n` + parsedItems[e].map((it: any) => `${it}`).join("\n");
+		}).join("\n\n")
+
 
   return [out, outHtml];
 }
