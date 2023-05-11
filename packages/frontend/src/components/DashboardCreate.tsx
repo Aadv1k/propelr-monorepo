@@ -155,13 +155,14 @@ function BrowserPane({
       xhr.onload = () => {
         const data = JSON.parse(xhr.responseText);
         setLoading(false);
+				if (!data.data) {
+						return;
+				}
+
         setHtml(data.data.content);
       };
-
       xhr.send();
     } 
-
-
     fetchData();
   };
 
@@ -408,7 +409,7 @@ function ControlPanel({ selectedHtml, url }: { selectedHtml: Array<string>; url:
       query: buildDracoQuery(Object.keys(selectedHtml), url),
       schedule: {
         type: formProps.scheduleType,
-        time: formProps.scheduledAt ?? null,
+        time: formProps.scheduledAt ?? "",
       },
       receiver: {
         identity: formProps.selectedIdentity,
