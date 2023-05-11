@@ -25,24 +25,6 @@ import {
   Spinner,
 } from '@chakra-ui/react';
 
-const EX_DATA = {
-  id: '13150a91',
-  userid: '78c734f70f1892cf',
-  status: 'stopped',
-  query: {
-    syntax:
-      'VAR page = FETCH "https://coinmarketcap.com/" \r\n  HEADER "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/112.0"\r\n  AS HTML\r\n\r\nVAR btcHtml = EXTRACT ".sc-beb003d5-3 > tbody:nth-child(3) > tr:nth-child(1) > td:nth-child(4) > div:nth-child(1) > a:nth-child(1) > span:nth-child(1)" FROM page\r\n\r\nVAR btcPrice = EXTRACT "children.0.text" FROM btcHtml',
-    vars: ['btcPrice'],
-  },
-  schedule: {
-    type: 'none',
-  },
-  receiver: {
-    identity: 'email',
-    address: 'killerrazerblade@gmail.com',
-  },
-  createdAt: 1682831372467,
-};
 
 function timeSince(date: number): string {
   const d = Date.now();
@@ -78,6 +60,37 @@ function FlowListItem(props: any) {
   const [flow, setFlow] = useState(props.flow);
   const toast = useToast();
 
+
+		const handleFlowDelete = (e: any) => {
+
+    setFlowLoading(true);
+    const flowIdentity = e.currentTarget.getAttribute('data-identity');
+    fetch(`${ApiConfig.base}/api/flows/${flowIdentity}/`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: 'Bearer ' + globalUser.token,
+      },
+    })
+      .then((res) => {
+
+					if (!res.ok) {
+							// TODO 
+
+					} else {
+							toast({
+									title: 'Success',
+									description: "Successfully deleted flow",
+									position: 'top-right',
+									status: 'success',
+									duration: 2000,
+									isClosable: true,
+							});
+							setFlow(null)
+					}
+        setFlowLoading(false);
+      });
+
+		}
 
   const handleFlowStop = (e: any) => {
     setFlowLoading(true);
@@ -151,6 +164,10 @@ function FlowListItem(props: any) {
       });
   };
 
+		if (flow === null) {
+				return (<> </>)
+		}
+	
   return (
     <Flex
       flexDirection={{ base: 'column', md: 'row' }}
@@ -194,6 +211,10 @@ function FlowListItem(props: any) {
       </Flex>
 
       <ButtonGroup alignSelf={{ base: 'center' }}>
+
+
+
+
         {flow.schedule.type !== 'none' &&
           (flow.status === 'running' ? (
             <Button
@@ -241,6 +262,24 @@ function FlowListItem(props: any) {
         >
           <i className="bi bi-lightning-charge-fill" style={{ fontSize: '1.4rem' }}></i>
         </Button>
+
+            <Button
+              rounded="full"
+              isDisabled={flowLoading}
+              aspectRatio="1"
+              h="100%"
+              onClick={handleFlowDelete}
+              data-identity={flow.id}
+								bg="transparent"
+											 borderStyle="solid"
+											 borderColor="red.500"
+								borderWidth={1}
+              color="red.400"
+              _hover={{ bg: 'red.500', color: 'white' }}
+              _focus={{ bg: 'red.500', color: 'white' }}
+            >
+              <i className="bi bi-trash-fill" style={{ fontSize: '1.5rem' }}></i>
+            </Button>
       </ButtonGroup>
     </Flex>
   );
@@ -436,9 +475,14 @@ export default function Dashboard() {
       </Box>
 
       <Box my={6}>
-        <Heading as="h2" color="blue.200" textAlign="left" fontWeight={800} fontSize="4xl" mb={4}>
-          Flows
-        </Heading>
+
+					<Flex justifyContent="space-between" alignItems="center">
+						<Heading as="h2" color="blue.200" textAlign="left" fontWeight={800} fontSize="4xl" mb={4}>
+								Flows
+						</Heading>
+
+					</Flex>
+
         {flowsLoading ? (
           <Spinner size="xl" color="blue.100" />
         ) : (
