@@ -28,12 +28,11 @@ export default async function (ctx: Koa.Context): Promise<void> {
     sendErrorResponse(ctx, ERROR.invalidJSON);
     return;
   }
-  if (!validateSchema(ctx.request.body, userSchema)) {
+  const data = ctx.request.body as User;
+  if (!data.email || !data.password) {
     sendErrorResponse(ctx, ERROR.badInput);
     return;
   }
-
-  const data = ctx.request.body as User;
 
   let isEmailValid;
   const emailExistsInBloomTable = invalidEmailBloomTable.exists(data.email);
@@ -54,36 +53,22 @@ export default async function (ctx: Koa.Context): Promise<void> {
 
   const foundUser = await USER_DB.getUserByEmail(data.email);
 
-  if (foundUser) {
-    sendErrorResponse(ctx, ERROR.userAlreadyExists);
-    return;
-  }
-
-  const user: User = {
-    id: generateId(8),
-    email: data.email,
-    password: md5(data.password),
-    username: data.username,
-  };
-
-  const pushedUser: User | null = await USER_DB.pushUser(user);
-
-  if (!pushedUser) {
-    sendErrorResponse(ctx, ERROR.internalError);
+  if (!foundUser) {
+    sendErrorResponse(ctx, ERROR.userNotFound);
     return;
   }
 
   const jwt_payload: any = {
-    id: pushedUser.id,
-    email: pushedUser.email,
-    username: pushedUser.username
+    id: foundUser.id,
+    email: foundUser.email,
+    username: foundUser.username
   };
 
   const token = node.jwt.sign(jwt_payload, JWT_SECRET);
 
   sendJSONResponse(ctx, {
     success: {
-      message: 'Successfully registered',
+      message: 'Successfully logged in',
       data: {
         token,
       },

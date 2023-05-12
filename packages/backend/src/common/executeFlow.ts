@@ -41,7 +41,7 @@ function recursiveHtmlParser(obj: any) {
 				case 'section':
 				case 'main':
 				case 'aside':
-						const ret = target.children.forEach(e => {
+						const ret = target.children.forEach((e: any) => {
 								let ret = recursiveHtmlParser(e);
 								items.texts.push(...ret.texts)
 								items.images.push(...ret.images)

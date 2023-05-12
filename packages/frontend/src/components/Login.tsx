@@ -134,7 +134,6 @@ export default function Login() {
             isClosable: true,
           });
         } else {
-          console.log(data);
           setGlobalUser({
             ...jwtDecode(data.token),
             token: data.token,
