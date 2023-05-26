@@ -77,7 +77,7 @@ export default function Hero() {
 
         <RouterLink to="/register" style={{ width: '100%' }}>
           <Button as="a" variant="solid" w="100%" maxW="250px" borderRadius="full" py={4}>
-            Sign up
+            Start hacking!
           </Button>
         </RouterLink>
 

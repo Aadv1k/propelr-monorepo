@@ -29,9 +29,6 @@ function IndexPage() {
     <>
       <Navbar />
       <Hero />
-      <Products />
-      <Pricing />
-      <NotConvincedYet />
       <Footer />
     </>
   );

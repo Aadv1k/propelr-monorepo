@@ -19,7 +19,6 @@ import { HamburgerIcon } from '@chakra-ui/icons'
 function NavDrawer() {
   const { isOpen, onOpen, onClose } = useDisclosure()
 
-
   return (
     <>
       <Button variant="ghost" onClick={onOpen} rounded={4} size="md">
@@ -70,24 +69,13 @@ export default function Navbar() {
         <Link color="blue.200" fontFamily="heading" fontWeight={700} fontSize={{base: "2xl", md: "3xl"}}>Propelr</Link>
       </RouterLink>
 
-      {isDesktop ? <NavDrawer /> : 
-
       <Flex as="ul" align="center" gap={4}>
-        <Link href="/#products" color="blue.200" fontFamily="heading" fontWeight={700}>Products</Link>
-        <Link href="/#pricing" color="blue.200" fontFamily="heading" fontWeight={700}>Pricing</Link>
-        <Link href="/#try-it" color="blue.200" fontFamily="heading" fontWeight={700}>Try it out</Link>
         <Flex gap={2} ml={4}>
-          <RouterLink to="/register">
-            <Button as="a" variant="solid" w={32} borderRadius="full">Sign up</Button>
-          </RouterLink>
-
           <RouterLink to="/login">
             <Button as="a" variant="outline" w={32} borderRadius="full">Login</Button>
           </RouterLink>
-
         </Flex>
       </Flex>
-    }
     </Box>
   )
 
