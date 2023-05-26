@@ -45,6 +45,12 @@ function objectToQueryString(obj: any) {
 }
 
 
+function GoogleIcon() {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 326667 333333" shape-rendering="geometricPrecision" text-rendering="geometricPrecision" image-rendering="optimizeQuality" fill-rule="evenodd" clip-rule="evenodd"><path d="M326667 170370c0-13704-1112-23704-3518-34074H166667v61851h91851c-1851 15371-11851 38519-34074 54074l-311 2071 49476 38329 3428 342c31481-29074 49630-71852 49630-122593m0 0z" fill="#4285f4"/><path d="M166667 333333c44999 0 82776-14815 110370-40370l-52593-40742c-14074 9815-32963 16667-57777 16667-44074 0-81481-29073-94816-69258l-1954 166-51447 39815-673 1870c27407 54444 83704 91852 148890 91852z" fill="#34a853"/><path d="M71851 199630c-3518-10370-5555-21482-5555-32963 0-11482 2036-22593 5370-32963l-93-2209-52091-40455-1704 811C6482 114444 1 139814 1 166666s6482 52221 17777 74814l54074-41851m0 0z" fill="#fbbc04"/><path d="M166667 64444c31296 0 52406 13519 64444 24816l47037-45926C249260 16482 211666 1 166667 1 101481 1 45185 37408 17777 91852l53889 41853c13520-40185 20927-69260 92001-69260m0 0z" fill="#ea4335"/></svg>
+    )
+}
+
 export default function Login() {
   const location = useLocation();
   const toast = useToast();
@@ -186,7 +192,7 @@ export default function Login() {
   if (!userLoading) {
 
   return (
-    <Card h={550} maxW={600} w="90%" mx="auto" my={50}>
+    <Card h={550} maxW={600} w="90%" mx="auto" my={50} bg="#fdfcf9">
       <CardHeader>
         <Heading size="xl" fontFamily="heading" color="blue.200" fontWeight={800} textAlign="left">
           Log in
@@ -196,25 +202,16 @@ export default function Login() {
       <CardBody>
         <Flex justifyContent="center" flexDirection="column" w="full" my={2} gap={2}>
           <Button
-            leftIcon={<i style={{ fontSize: '1.2rem' }} className="bi bi-microsoft"></i>}
-            variant="solid"
+            leftIcon={<GoogleIcon />}
+            variant="outline"
             w="full"
-            data-provider="microsoft"
-            onClick={handleOAuthClick}
-            isDisabled={isLoading}
-          >
-            Login with microsoft
-          </Button>
-
-          <Button
-            leftIcon={<i style={{ fontSize: '1.2rem' }} className="bi bi-google"></i>}
-            variant="solid"
-            w="full"
+            borderColor="gray.400"
+            color="gray.700"
             data-provider="google"
             onClick={handleOAuthClick}
             isDisabled={isLoading}
           >
-            Login with google
+            Login with Google
           </Button>
         </Flex>
 
@@ -229,7 +226,7 @@ export default function Login() {
         <Stack
           as="form"
           my={2}
-          gap={1}
+          gap={2}
           onSubmit={handleSubmit}
         >
           <FormControl>
@@ -259,7 +256,7 @@ export default function Login() {
   );
   } else {
     return (
-      <Card maxW={600} w="90%" mx="auto" my={50} h={550} display="flex" alignItems="center" justifyContent="center">
+      <Card maxW={600} w="90%" mx="auto" my={50} h={550} display="flex" alignItems="center" justifyContent="center"  bg="#fdfcf9">
       <Spinner size="xl" color="blue.100" />
     </Card>
     )

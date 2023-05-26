@@ -32,7 +32,6 @@ const theme = extendTheme({
           _active: {
             backgroundColor: "blue.100",
             color: "white.200",
-            transform: "scale(.96)",
           },
 
           _disabled: {
@@ -51,7 +50,6 @@ const theme = extendTheme({
           },
           _active: {
             backgroundColor: "transparent",
-            transform: "scale(.96)",
           }
         }
 

@@ -54,12 +54,17 @@ function timeSince(date: number): string {
   return Math.ceil(seconds) + ' seconds ago';
 }
 
+function extractURLFromSyntax(syntax: string): string | null {
+    const top = syntax.split("\n")[0]
+    const reg = /(http|ftp|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])/g
+    return top?.match(reg)?.[0] ?? null;
+}
+
 function FlowListItem(props: any) {
   const [globalUser, _] = useContext(UserContext);
   const [flowLoading, setFlowLoading] = useState(false);
   const [flow, setFlow] = useState(props.flow);
   const toast = useToast();
-
 
 		const handleFlowDelete = (e: any) => {
 
@@ -186,7 +191,7 @@ function FlowListItem(props: any) {
           fontFamily="body"
           color="gray.700"
         >
-          {flow.id}
+          {extractURLFromSyntax(flow.query.syntax) ?? flow.id}
           <Tag size="sm" color="black" bg="yellow.100" variant="solid" textTransform="uppercase" ml={1} mt={1}>
             {flow.schedule.type}
           </Tag>
@@ -211,9 +216,6 @@ function FlowListItem(props: any) {
       </Flex>
 
       <ButtonGroup alignSelf={{ base: 'center' }}>
-
-
-
 
         {flow.schedule.type !== 'none' &&
           (flow.status === 'running' ? (
@@ -358,9 +360,11 @@ export default function Dashboard() {
             </Text>
           </Flex>
         </Flex>
-        <Button variant="solid" aspectRatio="1">
-          <i className="bi bi-box-arrow-left"></i>
-        </Button>
+        <RouterLink to="/logout">
+            <Button variant="solid" aspectRatio="1" as="a">
+                <i className="bi bi-box-arrow-left"></i>
+            </Button>
+        </RouterLink>
       </Flex>
 
       <Box my={6}>
@@ -412,10 +416,10 @@ export default function Dashboard() {
           <Flex
             shadow="sm"
             borderWidth="2px"
-            borderColor="#EEE4C8"
+            borderColor="#fff9e6"
             rounded="2xl"
             borderStyle="dashed"
-            bg="#EEE4C8"
+            bg="#fff9e6"
             justifyContent="space-between"
             flexDirection="column"
             p={4}
@@ -433,7 +437,7 @@ export default function Dashboard() {
                 <Heading color="gray.700" fontFamily="heading" fontSize="4xl" fontWeight={800}>
                   {flows.length} flows
                 </Heading>
-                <Text color="gray.600">/ 500</Text>
+                <Text color="gray.600">/ 150</Text>
               </HStack>
             </Skeleton>
             <Text color="gray.600" textAlign="left">
@@ -444,10 +448,10 @@ export default function Dashboard() {
           <Flex
             shadow="sm"
             borderWidth="2px"
-            borderColor="#EEE4C8"
-            rounded="xl"
+            borderColor="#fff9e6"
+            rounded="2xl"
             borderStyle="dashed"
-            bg="#EEE4C8"
+            bg="#fff9e6"
             justifyContent="space-between"
             flexDirection="column"
             p={4}
@@ -477,10 +481,15 @@ export default function Dashboard() {
       <Box my={6}>
 
 					<Flex justifyContent="space-between" alignItems="center">
+
+
+              {flows.length !== 0 &&
+            
 						<Heading as="h2" color="blue.200" textAlign="left" fontWeight={800} fontSize="4xl" mb={4}>
 								Flows
 						</Heading>
 
+              }
 					</Flex>
 
         {flowsLoading ? (
