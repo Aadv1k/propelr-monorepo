@@ -3,72 +3,63 @@ import { Flow, Recipients } from '../types';
 import { node as common } from '@propelr/common';
 import sendMail from './sendMail';
 
-function recursiveHtmlParser(obj: any) {
-		let items: any = {
-				links: [],
-				images: [],
-				texts: [],
-		} 
+function parseData(data) {
+  const categorized = {
+    links: [],
+    text: [],
+    images: [],
+  };
 
-		let target = obj;
+  for (const item of data) {
+    if (item.type === 'JSON' && item.value) {
+      const { tag, attributes, children } = item.value;
 
-   		
+      if (tag === 'a' && attributes.href) {
+        categorized.links.push(attributes.href);
+      } else if (tag === 'img' && attributes.src) {
+        categorized.images.push(attributes.src);
+      }
 
-    switch (obj?.tag) {
-      case 'a':
-        items.links.push(target.attributes.href);
-        break;
-      case 'img':
-        items.images.push(target.attributes.src);
-        break;
-      case 'h1':
-      case 'h2':
-      case 'h3':
-      case 'h4':
-      case 'h5':
-      case 'h6':
-        items.texts.push(target.children[0].text);
-        break;
-      case 'b':
-      case 'i':
-      case 'em':
-      case 'strong':
-      case 'p':
-						items.texts.push(target.children[0].text);
-						break;
-				case 'div':
-				case 'article':
-				case 'section':
-				case 'main':
-				case 'aside':
-						const ret = target.children.forEach((e: any) => {
-								let ret = recursiveHtmlParser(e);
-								items.texts.push(...ret.texts)
-								items.images.push(...ret.images)
-								items.links.push(...ret.links)
-						});
-						break;
+      for (const child of children) {
+        if (child.type === 'TextNode' && child.text) {
+          categorized.text.push(child.text);
+        }
+      }
     }
+  }
 
-		return items;
+  return categorized;
 }
 
 
-function formatMessageFromHTMLObject(obj: any): [string, string] {
-		let parsedItems = recursiveHtmlParser(obj[0].value);
+function generateHTML(data) {
+  let html = '';
 
-		let itemList = Object.keys(parsedItems).filter(e => parsedItems[e].length > 0);
-		const outHtml = itemList.map((e: string) => {
-				return `<center><h2>${e.toUpperCase()}</h2></center>\n<ul>` + parsedItems[e].map((it: any) => `<li>${it}</li>`).join("\n") + "</ul><br>";
-		}).join("<hr>")
+  for (const key in data) {
+    if (data.hasOwnProperty(key)) {
+      const items = data[key];
+      if (items && items.length > 0) {
+        html += `<h2>${key.toUpperCase()}</h2>`;
+        html += '<ul>';
 
-		const out = Object.keys(parsedItems).map((e: string) => {
-				return `${e.toUpperCase()}\n` + parsedItems[e].map((it: any) => `${it}`).join("\n");
-		}).join("\n\n")
+        for (const item of items) {
+          if (key === 'images') {
+            html += `<li><img src="${item}"></li>`;
+          } else if (key === 'links') {
+            html += `<li><a href="${item}">${item}</a></li>`;
+          } else if (key === 'text') {
+            html += `<li>${item}</li>`;
+          }
+        }
 
+        html += '</ul>';
+      }
+    }
+  }
 
-  return [out, outHtml];
+  return html;
 }
+
 
 export default async function executeFlow(flow: Flow) {
   const dracoSyntax = flow.query.syntax;
@@ -81,7 +72,7 @@ export default async function executeFlow(flow: Flow) {
     throw err;
   }
 
-  const [message, htmlMessage] = formatMessageFromHTMLObject(parsedVars);
+  const generatedHTML = generateHTML(parseData(parsedVars));
 
   switch (flow.receiver.identity) {
     case Recipients.whatsapp:
@@ -90,7 +81,7 @@ export default async function executeFlow(flow: Flow) {
       const mailSent = await sendMail({
         to: flow.receiver.address,
         subject: `propelr job: ${flow.id}`,
-        html: htmlMessage,
+        html: generatedHTML,
       });
       break;
   }

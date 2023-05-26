@@ -44,8 +44,11 @@ export default async function (ctx: Koa.Context) {
   try {
     html = await node.fetchAndCacheHtml(targetUrl, Number(timeout));
   } catch (error) {
-    console.log(error);
-    utils.sendErrorResponse(ctx, ERROR.badInput);
+     console.warn(`[WARN] ${targetUrl} failed in headless mode, trying http`)
+    let chunks = await node.http.GET(targetUrl)
+    html = {
+        content: Buffer.concat(chunks).toString()
+    }
     return;
   }
 
