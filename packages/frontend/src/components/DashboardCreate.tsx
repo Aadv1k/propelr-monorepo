@@ -140,30 +140,23 @@ function BrowserPane({
     setLoading(true);
     setSelectedHtml({});
 
-    const fetchData = async () => {
-      const xhr = new XMLHttpRequest();
-      xhr.open('GET', `${ApiConfig.base}/api/scraper?url=${encodeURIComponent(url)}`, true);
-      xhr.setRequestHeader('Authorization', `Bearer ${globalUser.token}`)
+      fetch(`${ApiConfig.base}/api/scraper?url=${encodeURIComponent(url)}`, {
+          headers: {
+              "Authorization": `Bearer ${globalUser.token}`
+          }
+      })
+        .then(res => {
+            if (!res.ok) {
+                setUrl(null);
+                return;
+            }
+            return res.json();
+        }).catch(err => setUrl(null))
+        .then(data => {
+            setLoading(false);
+            setHtml(data.data.content);
+        })
 
-      xhr.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percentComplete = event.loaded / event.total * 100;
-          setProgress(Math.floor(percentComplete));
-        }
-      };
-
-      xhr.onload = () => {
-        const data = JSON.parse(xhr.responseText);
-        setLoading(false);
-				if (!data.data) {
-						return;
-				}
-
-        setHtml(data.data.content);
-      };
-      xhr.send();
-    } 
-    fetchData();
   };
 
   const handlePaneClick = (e: any) => {
