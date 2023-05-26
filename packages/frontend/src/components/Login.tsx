@@ -140,11 +140,12 @@ export default function Login() {
             isClosable: true,
           });
         } else {
+          const token = data.success.data.token
           setGlobalUser({
-            ...jwtDecode(data.token),
+            ...jwtDecode(token),
             token: data.token,
           });
-          localStorage.setItem("propelrToken", data.token);
+          localStorage.setItem("propelrToken", token);
           navigate("/dashboard");
         }
         setLoading(false);
@@ -192,7 +193,7 @@ export default function Login() {
   if (!userLoading) {
 
   return (
-    <Card py={2}  maxW={400} w="90%"  bg="#fdfcf9"
+    <Card maxW={400} w="90%"  bg="#fdfcf9"
           position="fixed"
             top="50%"
             left="50%"
@@ -261,7 +262,18 @@ export default function Login() {
   );
   } else {
     return (
-      <Card maxW={600} w="90%" mx="auto" my={50} h={550} display="flex" alignItems="center" justifyContent="center"  bg="#fdfcf9">
+    <Card h={550} maxW={400} w="90%"
+          bg="#fdfcf9"
+          position="fixed"
+          top="50%"
+          left="50%"
+          sx={{transform: "translate(-50%, -50%)"}}
+
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+
+          >
       <Spinner size="xl" color="blue.100" />
     </Card>
     )

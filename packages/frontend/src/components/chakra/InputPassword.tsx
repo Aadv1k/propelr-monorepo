@@ -14,9 +14,15 @@ export default function InputPassword(props: any) {
         {...props}
       />
       <InputRightElement width='4.5rem'>
-        <Button h='1.75rem' size='sm' variant="outline" onClick={handleClick}>
-          {show ? 'Hide' : 'Show'}
+        <Button tabIndex={-1} color="gray.400" size='sm' variant="none" onClick={handleClick}>
+          <i
+              style={{
+                  fontSize: "1.5rem"
+              }}
+              className={`bi ${show ? "bi-eye-slash" : "bi-eye"}`}>
+          </i>
         </Button>
+
       </InputRightElement>
     </InputGroup>
   )
