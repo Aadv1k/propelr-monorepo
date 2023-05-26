@@ -222,9 +222,14 @@ export default function Register() {
   if (!userLoading) {
 
   return (
-    <Card maxW={600} w="90%" mx="auto" my={50} bg="#fdfcf9">
+    <Card py={2} maxW={400} w="90%"  bg="#fdfcf9"
+          position="fixed"
+            top="50%"
+            left="50%"
+            sx={{transform: "translate(-50%, -50%)"}}
+          >
       <CardHeader>
-        <Heading size="xl" fontFamily="heading" color="blue.200" fontWeight={800} textAlign="left">
+        <Heading size="xl" fontFamily="heading" color="blue.200" fontWeight={800}>
           Sign Up
         </Heading>
       </CardHeader>
