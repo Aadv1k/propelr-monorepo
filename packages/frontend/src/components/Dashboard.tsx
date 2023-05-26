@@ -26,6 +26,23 @@ import {
 } from '@chakra-ui/react';
 
 
+function getGreeting(): string {
+  const currentDate = new Date();
+  const currentHour = currentDate.getHours();
+
+  let greeting: string;
+
+  if (currentHour >= 5 && currentHour < 12) {
+    greeting = 'Good morning';
+  } else if (currentHour >= 12 && currentHour < 18) {
+    greeting = 'Good afternoon';
+  } else {
+    greeting = 'Good evening';
+  }
+
+  return greeting;
+}
+
 function timeSince(date: number): string {
   const d = Date.now();
 
@@ -353,7 +370,7 @@ export default function Dashboard() {
           <Avatar name={globalUser.username} src="" />
           <Flex alignItems="start" flexDirection="column">
             <Text color="gray.400" fontSize="sm">
-              Good morning
+              {getGreeting()}
             </Text>
             <Text color="gray.700" fontSize="md">
               {globalUser.username}
