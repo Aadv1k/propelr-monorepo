@@ -190,6 +190,7 @@ export default async function routeOAuthToken(ctx: Koa.Context, next: Koa.Next) 
       );
       break;
     }
+          /* DEPRACATED
     case 'microsoft':
       {
         const authToken = await getMicrosoftAuthTokenFromCode(authCode, redirectOrigin);
@@ -224,5 +225,6 @@ export default async function routeOAuthToken(ctx: Koa.Context, next: Koa.Next) 
         );
       }
       break;
+  */
   }
 }
