@@ -7,7 +7,7 @@ const OAuthConfig = config.OAuthConfig
 
 
 dotenv.config({
-  path: path.resolve(__dirname, "../../../.env"),
+  path: path.resolve(__dirname, "../../../../.env"),
 });
 
 export const PORT = process.env.PORT || 4000;
@@ -39,6 +39,7 @@ export const ATLAS = {
   PASSWORD: process.env.ATLAS_PASSWORD,
   USER: process.env.ATLAS_USER,
 };
+
 
 export const OAuthSchemes = {
   google: 'google',
