@@ -7,10 +7,8 @@
   "description": "propel your productivty and data to heights. From calendars to jobs portals connect everything to your favourite communications",
   "main": "index.js",
   "scripts": {
-    "build": "./scripts/pre-build.sh && npm install --ws && npm run build --ws",
-    "build:backend": "./scripts/build-backend.sh",
-    "start:backend": "node ./dist/backend/",
-    "build:frontend": "./scripts/pre-build.sh && ./scripts/build-frontend.sh",
+    "build:backend": "npm run build --workspace=@propelr/backend",
+    "build:frontend": "npm run build --workspace=@propelr/frontend",
     "clean": "./scripts/cleanup.sh"
   },
   "author": "Aadvik<aadv1k@outlook.com>",

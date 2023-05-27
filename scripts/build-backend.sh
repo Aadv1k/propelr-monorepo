@@ -1,5 +1,3 @@
-#!/bin/bash
-
 COMMON="@propelr/common"
 BACKEND="@propelr/backend"
 

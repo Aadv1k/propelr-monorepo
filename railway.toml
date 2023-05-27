@@ -1,6 +1,0 @@
-[build]
-  builder = "nixpacks"
-  buildCommand = "npm run build:backend"
-
-[deploy]
-  startCommand = "npm run start:backend"

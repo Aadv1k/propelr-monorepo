@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/bash
 
 COMMON="@propelr/common"
 FRONTEND="@propelr/frontend"
@@ -8,3 +8,5 @@ npm install --workspace="$FRONTEND"
 
 npm run build --workspace="$COMMON"
 npm run build --workspace="$FRONTEND"
+
+mv ./packages/frontend/build ./dist/frontend
