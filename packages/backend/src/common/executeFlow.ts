@@ -3,8 +3,29 @@ import { Flow, Recipients } from '../types';
 import { node as common } from '@propelr/common';
 import sendMail from './sendMail';
 
-function parseData(data) {
-  const categorized = {
+interface ParsedData {
+  links: string[];
+  text: string[];
+  images: string[];
+}
+
+interface JSONData {
+  type: 'JSON';
+  value: {
+    tag: string;
+    attributes: {
+      href?: string;
+      src?: string;
+    };
+    children: {
+      type: 'TextNode';
+      text?: string;
+    }[];
+  };
+}
+
+function parseData(data: JSONData[]): ParsedData {
+  let categorized: ParsedData = {
     links: [],
     text: [],
     images: [],
@@ -31,8 +52,7 @@ function parseData(data) {
   return categorized;
 }
 
-
-function generateHTML(data) {
+function generateHTML(data: any): any {
   let html = '';
 
   for (const key in data) {
@@ -72,7 +92,7 @@ export default async function executeFlow(flow: Flow) {
     throw err;
   }
 
-  const generatedHTML = generateHTML(parseData(parsedVars));
+  const generatedHTML = generateHTML(parseData(parsedVars as any));
 
   switch (flow.receiver.identity) {
     case Recipients.whatsapp:
