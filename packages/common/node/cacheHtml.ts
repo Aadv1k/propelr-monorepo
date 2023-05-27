@@ -73,7 +73,11 @@ async function fetchHtml(baseUrl: string): Promise<string> {
 
 
   for (const cssLink of stylesheets) {
-    await injectCSS(cssLink as string, page)
+    try {
+        await injectCSS(cssLink as string, page)
+    } catch {
+        continue;
+    }
   }
 
   let html = await page.content();

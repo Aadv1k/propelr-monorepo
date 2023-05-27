@@ -3,6 +3,8 @@ import { Flow, Recipients } from '../types';
 import { node as common } from '@propelr/common';
 import sendMail from './sendMail';
 
+import { writeFileSync } from "node:fs";
+
 interface ParsedData {
   links: string[];
   text: string[];
@@ -81,6 +83,7 @@ function generateHTML(data: any): any {
 }
 
 
+
 export default async function executeFlow(flow: Flow) {
   const dracoSyntax = flow.query.syntax;
   const dracoVars = flow.query.vars;
@@ -92,7 +95,13 @@ export default async function executeFlow(flow: Flow) {
     throw err;
   }
 
-  const generatedHTML = generateHTML(parseData(parsedVars as any));
+  const parsedData = parseData(parsedVars as any);
+  let generatedHTML = generateHTML(parsedData);
+
+
+  if (generatedHTML.length === 0) {
+      generatedHTML = "<h2>Your data was too complex :/</h2><p>We suggest you try being more specific when selecting element from prevent this from happening. You can delete this flow and create a new one</p>"
+  }
 
   switch (flow.receiver.identity) {
     case Recipients.whatsapp:
