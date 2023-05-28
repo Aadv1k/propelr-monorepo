@@ -15,6 +15,7 @@
     "typescript": "^5.0.4"
   },
   "dependencies": {
+    "@propelr/backend": "^0.0.1",
     "dotenv": "^16.0.3",
     "dracoql": "^0.4.1",
     "puppeteer": "^19.11.1"
