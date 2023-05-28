@@ -173,17 +173,6 @@ export default function Login() {
         window.location.href = url;
         break; 
       }
-      case "microsoft": {
-        const params = objectToQueryString({
-          client_id: OAuthConfig.MS_AUTH.CLIENT_ID,
-          redirect_uri: OAuthConfig.MS_AUTH.REDIRECT,
-          scope: "User.Read",
-          response_type: "code"
-        })
-        const url = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${params}`;
-        window.location.href = url;
-        break;
-      }
       default: 
         console.log("you got bamboozled");
     }
