@@ -21,9 +21,6 @@ here is what your `.env` file might look like
 GOOGLE_CLIENT_ID = ""
 GOOGLE_CLIENT_SECRET =  ""
 
-MICROSOFT_CLIENT_ID = ""
-MICROSOFT_CLIENT_SECRET = ""
-
 ATLAS_PASSWORD = ""
 ATLAS_USER = ""
 

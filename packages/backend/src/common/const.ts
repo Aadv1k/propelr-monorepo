@@ -1,14 +1,17 @@
 import { httpErrors } from '../types';
 import dotenv from 'dotenv';
 import path from "node:path";
-
-import { config } from "@propelr/common/";
-const OAuthConfig = config.OAuthConfig
+import { readFileSync } from "node:fs";
 
 
 dotenv.config({
   path: path.resolve(__dirname, "../../../../.env"),
 });
+
+  
+const OAuthConfig = JSON.parse(
+    readFileSync(path.resolve(__dirname, "../../../../config/OAuthConfig.json"), "utf-8")
+)
 
 export const PORT = process.env.PORT || 4000;
 
@@ -30,11 +33,6 @@ export const GOOGLE_AUTH = {
   CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ?? '',
 };
 
-export const MS_AUTH = {
-  CLIENT_ID: OAuthConfig.MS_AUTH.CLIENT_ID,
-  CLIENT_SECRET: process.env.MS_CLIENT_SECRET ?? '',
-};
-
 export const ATLAS = {
   PASSWORD: process.env.ATLAS_PASSWORD,
   USER: process.env.ATLAS_USER,
@@ -42,9 +40,7 @@ export const ATLAS = {
 
 
 export const OAuthSchemes = {
-  google: 'google',
-  microsoft: 'microsoft',
-  discord: 'discord',
+  google: 'google'
 } as {
   [key: string]: string;
 };

@@ -1,12 +1,12 @@
 import Koa from 'koa';
 
-import { GOOGLE_AUTH, MS_AUTH, OAuthSchemes, ERROR, JWT_SECRET } from '../common/const';
+import { GOOGLE_AUTH, OAuthSchemes, ERROR, JWT_SECRET } from '../common/const';
 import { sendErrorResponse, generateId, sendJSONResponse } from '../common/utils';
 
 import { User } from '../types';
 import UserRepo from '../models/UserRepository';
-import { node } from '@propelr/common';
-const jwt = node.jwt;
+
+import * as jwt from "../common/jwt";
 
 import fetch from 'node-fetch';
 
@@ -50,6 +50,7 @@ async function getGoogleAuthTokenFromCode(code: string, redirect: string) {
   return data.access_token;
 }
 
+/*
 async function getMicrosoftAuthTokenFromCode(code: string, redirect: string) {
   const requestBody = new URLSearchParams({
     code: code,
@@ -88,6 +89,7 @@ async function getMicrosoftUserFromToken(token: string): Promise<{
     email: data.userPrincipalName ?? data.mail
   }
 }
+*/
 
 async function findUserOrCreateUserToken(user: User): Promise<string | null> {
   await USER_DB.init();

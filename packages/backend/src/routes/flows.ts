@@ -2,13 +2,14 @@ import Koa from 'koa';
 
 import { ERROR, JWT_SECRET } from '../common/const';
 import * as utils from '../common/utils';
-import { node as common } from '@propelr/common';
 import { Flow, FlowState, KeyPerms } from '../types';
 import { USER_DB } from '../models/UserRepository';
 import flowSchema from "../schemas/flow";
 import { FLOW_RUNNER } from "../models/FlowRunner";
 
 import executeFlow from "../common/executeFlow";
+import * as dracoQueryRunner from '../common/dracoQueryRunner';
+import * as jwt from "../common/jwt"
 
 async function parseApiKey(ctx: Koa.Context): Promise<any | null> {
   if (!ctx.headers?.['x-api-key']) return null;
@@ -25,9 +26,9 @@ async function parseJwtTokenFromHeader(ctx: Koa.Context): Promise<any | null> {
 
   if (!scheme && !token) return null;
 
-  if (!common.jwt.verify(token, JWT_SECRET)) return null;
+  if (!jwt.verify(token, JWT_SECRET)) return null;
 
-  return common.jwt.parse(token);
+  return jwt.parse(token);
 }
 
 async function getFlowStop(ctx: Koa.Context): Promise<void> {
@@ -249,7 +250,7 @@ async function createFlow(ctx: Koa.Context): Promise<void> {
   const data = ctx.request.body as Flow;
 
   try {
-    common.dracoQueryRunner.validateSyntax(data.query.syntax);
+    dracoQueryRunner.validateSyntax(data.query.syntax);
   } catch (err: any) {
     utils.sendJSONResponse(
       ctx,

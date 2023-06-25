@@ -2,7 +2,10 @@ import Koa from 'koa';
 
 import { ERROR, JWT_SECRET } from '../common/const';
 import * as utils from '../common/utils';
-import { node } from '@propelr/common';
+
+import * as http from "../common/http";
+import * as jwt from "../common/jwt";
+import fetchAndCacheHtml from "../common/cacheHtml";
 
 async function verifyAndparseJwtTokenFromHeader(ctx: Koa.Context): Promise<any | null> {
   if (!ctx.headers?.['authorization']) return null;
@@ -12,9 +15,9 @@ async function verifyAndparseJwtTokenFromHeader(ctx: Koa.Context): Promise<any |
 
   if (!scheme && !token) return null;
 
-  if (!node.jwt.verify(token, JWT_SECRET)) return null;
+  if (!jwt.verify(token, JWT_SECRET)) return null;
 
-  return node.jwt.parse(token);
+  return jwt.parse(token);
 }
 
 export default async function (ctx: Koa.Context) {
@@ -42,10 +45,10 @@ export default async function (ctx: Koa.Context) {
   let html: any;
 
   try {
-    html = await node.fetchAndCacheHtml(targetUrl, Number(timeout));
+    html = await fetchAndCacheHtml(targetUrl, Number(timeout));
   } catch (error) {
      console.warn(`[WARN] ${targetUrl} failed in headless mode, trying http; error summary: ${error}`)
-    let chunks = await node.http.GET(targetUrl)
+    let chunks = await http.GET(targetUrl)
     html = {
         content: Buffer.concat(chunks).toString()
     }

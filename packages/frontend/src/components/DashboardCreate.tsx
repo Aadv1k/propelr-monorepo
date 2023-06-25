@@ -2,7 +2,7 @@ import { useContext, useState, useEffect, useRef } from 'react';
 import UserContext from '../context/UserContext';
 import unique from 'unique-selector';
 
-import ApiConfig from "@propelr/common/config/ApiConfig";
+import ApiConfig from "../config/ApiConfig.json";
 
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 

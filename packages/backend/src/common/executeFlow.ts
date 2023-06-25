@@ -1,6 +1,6 @@
 import { Flow, Recipients } from '../types';
 
-import { node as common } from '@propelr/common';
+import * as dracoQueryRunner from '../common/dracoQueryRunner';
 import sendMail from './sendMail';
 
 import { writeFileSync } from "node:fs";
@@ -90,7 +90,7 @@ export default async function executeFlow(flow: Flow) {
   let parsedVars;
 
   try {
-    parsedVars = await common.dracoQueryRunner.runDracoQueryAndGetVar(dracoSyntax, dracoVars);
+    parsedVars = await dracoQueryRunner.runDracoQueryAndGetVar(dracoSyntax, dracoVars);
   } catch (err) {
     throw err;
   }

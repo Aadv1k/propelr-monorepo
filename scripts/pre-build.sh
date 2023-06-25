@@ -20,10 +20,7 @@ fi
 GOOGLE_CLIENT_ID=`cat .env | grep GOOGLE_CLIENT_ID  | awk -F '"' '{print $2}'`
 GOOGLE_CLIENT_SECRET=`cat .env | grep GOOGLE_CLIENT_SECRET  | awk -F '"' '{print $2}'`
 
-MICROSOFT_CLIENT_ID=`cat .env | grep MICROSOFT_CLIENT_ID  | awk -F '"' '{print $2}'`
-MICROSOFT_CLIENT_SECRET=`cat .env | grep MICROSOFT_CLIENT_SECRET  | awk -F '"' '{print $2}'`
-
-if [ -z "$GOOGLE_CLIENT_ID" ] || [ -z "$GOOGLE_CLIENT_SECRET" ] || [ -z "$MICROSOFT_CLIENT_ID" ] || [ -z "$MICROSOFT_CLIENT_SECRET" ]; then
+if [ -z "$GOOGLE_CLIENT_ID" ] || [ -z "$GOOGLE_CLIENT_SECRET" ]; then
   echo "[ERROR] One or more environment variables are not set"
   exit 1
 fi
@@ -35,11 +32,6 @@ export default {
     CLIENT_ID: "$GOOGLE_CLIENT_ID" ,
     REDIRECT: 'https://propelr.netlify.app/register',
   },
-
-  MS_AUTH: {
-    CLIENT_ID:  "$MICROSOFT_CLIENT_ID",
-    REDIRECT: 'https://propelr.netlify.app/register',
-  }
 }
 EOF
 )

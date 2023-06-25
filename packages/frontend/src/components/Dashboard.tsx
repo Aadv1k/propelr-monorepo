@@ -5,7 +5,7 @@ import { useToast } from '@chakra-ui/react';
 
 import { Link as RouterLink } from 'react-router-dom';
 
-import ApiConfig from "@propelr/common/config/ApiConfig";
+import ApiConfig from "../config/ApiConfig.json";
 
 import jwtDecode from 'jwt-decode';
 

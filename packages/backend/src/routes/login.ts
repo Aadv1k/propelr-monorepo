@@ -9,7 +9,10 @@ import {
   md5,
   validateSchema,
 } from '../common/utils';
-import {node} from '@propelr/common/';
+
+import * as jwt from "../common/jwt";
+import validateMail from "../common/validateEmail";
+
 import { User } from '../types';
 import { USER_DB } from '../models/UserRepository';
 
@@ -40,7 +43,7 @@ export default async function (ctx: Koa.Context): Promise<void> {
   if (emailExistsInBloomTable) {
     isEmailValid = false;
   } else {
-    isEmailValid = await node.validateEmail(data.email, isProd, ABSTRACT_API.KEY);
+    isEmailValid = await validateMail(data.email, isProd, ABSTRACT_API.KEY);
   }
 
   if (!isEmailValid) {
@@ -64,7 +67,7 @@ export default async function (ctx: Koa.Context): Promise<void> {
     username: foundUser.username
   };
 
-  const token = node.jwt.sign(jwt_payload, JWT_SECRET);
+  const token = jwt.sign(jwt_payload, JWT_SECRET);
 
   sendJSONResponse(ctx, {
     success: {

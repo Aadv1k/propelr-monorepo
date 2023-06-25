@@ -1,8 +1,8 @@
 import jwtDecode from "jwt-decode";
 import { Link as RouterLink } from "react-router-dom";
 
-import OAuthConfig from "@propelr/common/config/OAuthConfig";
-import ApiConfig from "@propelr/common/config/ApiConfig";
+import ApiConfig from "../config/ApiConfig.json";
+import OAuthConfig from "../config/OAuthConfig.json";
 
 import {
   Card,
