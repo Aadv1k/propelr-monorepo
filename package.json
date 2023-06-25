@@ -7,7 +7,6 @@
   "description": "propel your productivty and data to heights. From calendars to jobs portals connect everything to your favourite communications",
   "main": "index.js",
   "scripts": {
-    "install": "npm install --ws",
     "build:backend": "npm run build --workspace=@propelr/backend",
     "build:frontend": "npm run build --workspace=@propelr/frontend",
     "start": "node ./packages/backend/dist",
